@@ -1,8 +1,7 @@
 package com.nyxeira.homerunner.entrymodel.model;
 
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.Set;
