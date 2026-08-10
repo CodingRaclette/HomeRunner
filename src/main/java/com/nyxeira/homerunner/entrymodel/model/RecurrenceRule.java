@@ -6,7 +6,10 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.Set;
 
-
+/**
+ * Règle de récurrence : sous-ensemble simplifié de la RFC 5545.
+ * Les occurrences ne sont pas pré-générées en base ; elles sont calculées à la demande.
+ */
 @Embeddable
 public class RecurrenceRule {
 
