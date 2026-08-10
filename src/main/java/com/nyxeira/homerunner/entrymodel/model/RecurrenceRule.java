@@ -11,7 +11,8 @@ import java.util.Set;
 @Embeddable
 public class RecurrenceRule {
 
-    Frequency frequency;
+    @Enumerated(EnumType.STRING)
+    Frequency frequency; // Basée sur un enum non développé explicitement lors de la conception
 
     int interval;
 
