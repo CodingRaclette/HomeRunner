@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 
 @Entity
+@Table(name = "users") // user est un mot réservé SQL
 public class User {
 
     @Id
