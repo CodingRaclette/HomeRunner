@@ -10,6 +10,16 @@ import jakarta.persistence.ManyToMany;
 import java.util.HashSet;
 import java.util.Set;
 
+
+/**
+ * Cette entité définit une tâche dans un calendrier. La tâche se distingue par le fait qu'elle :
+ *  - possède un statut de validation, définit par la présence d'au moins un contributeur OU l'attribut validatedByOther ;
+ *  - est associée à une liste de users assignés à la tâche (et qui peuvent donc la valider) ;
+ *  - est associée à une liste de contributeurs, qui indique les users qui ont effectivement participé à l'accomplissement de la tâche.
+ *  Je me questionne toujours sur la ressemblance entre "participants" de Event et "assignees", mais il me semble pour
+ *  l'instant judicieux de les garder séparés, dans le cas où des comportements particuliers pourraient s'appliquer.
+ *  A voir dans la suite du développement.
+ */
 @DiscriminatorValue("TASK")
 @Entity
 public class Task extends Entry {
