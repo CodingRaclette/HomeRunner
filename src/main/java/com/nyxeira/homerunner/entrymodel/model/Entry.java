@@ -8,6 +8,10 @@ import java.time.LocalDateTime;
 
 import static jakarta.persistence.InheritanceType.SINGLE_TABLE;
 
+/**
+ * Entrée de calendrier (évènement ou tâche, pour l'instant, mais est amené à recevoir d'autre types d'entrées)
+ * Mappé en single table pour que les requêtes restent polymorphes sans jointure.
+ */
 @Inheritance(strategy = SINGLE_TABLE)
 @DiscriminatorColumn(name = "entry_type")
 @Entity
