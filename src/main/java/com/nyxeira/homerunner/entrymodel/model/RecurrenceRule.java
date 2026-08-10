@@ -17,7 +17,7 @@ public class RecurrenceRule {
     Frequency frequency; // Basée sur un enum non développé explicitement lors de la conception
 
     @Column(name = "recurrence_interval") // "interval" est un mot réservé SQL (H2)
-    int interval;
+    Integer interval;
 
     LocalDate until;
 
