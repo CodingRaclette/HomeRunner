@@ -27,7 +27,7 @@ public class RecurrenceRule {
     public RecurrenceRule() {}
 
     public Frequency getFrequency() { return frequency; }
-    public int getInterval() { return interval; }
+    public Integer getInterval() { return interval; }
     public LocalDate getUntil() { return until; }
     public Set<LocalDate> getExDates() { return exDates; }
 }
