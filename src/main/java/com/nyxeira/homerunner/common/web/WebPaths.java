@@ -21,9 +21,7 @@ public final class WebPaths {
     // Administration
     public static final String ADMIN = "/admin/**";
 
-    // Authentification : chemins par défaut de Spring Security, explicités ici
-    // pour que toute personnalisation future (ex. renommer /login) se fasse
-    // à un seul endroit plutôt que de traquer chaque occurrence en dur.
+    // Gestion de la connexion
     public static final String LOGIN = "/login";
     public static final String LOGOUT = "/logout";
 
