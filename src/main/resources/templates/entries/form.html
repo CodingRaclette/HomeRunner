@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head><title>Nouvelle entrée</title></head>
+<body>
+<h1>Nouvelle entrée (<span th:text="${form.type}"></span>)</h1>
+<form th:action="@{/entries}" th:object="${form}" method="post">
+    <input type="hidden" th:field="*{type}" th:value="${form.type}"/>
+    <label>Nom : <input type="text" th:field="*{name}"/></label>
+    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div><br/>
+    <label>Date : <input type="datetime-local" th:field="*{date}"/></label>
+    <div th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div><br/>
+    <label th:if="${form.type.name() == 'EVENT'}">Date de fin : <input type="datetime-local" th:field="*{endDate}"/></label>
+    <div th:if="${#fields.hasErrors('endDateValid')}" th:errors="*{endDateValid}"></div><br/>
+    <label>Description : <textarea th:field="*{description}"></textarea></label><br/>
+    <button type="submit">Créer</button>
+</form>
+</body>
+</html>

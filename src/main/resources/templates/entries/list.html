@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head><title>Calendrier</title></head>
+<body>
+<h1>Entrées</h1>
+<p>
+    <a th:href="@{/entries/new(type='EVENT')}">Nouvel évènement</a> |
+    <a th:href="@{/entries/new(type='TASK')}">Nouvelle tâche</a>
+</p>
+<ul>
+    <li th:each="e : ${entries}">
+        <a th:href="@{/entries/{id}(id=${e.id})}">
+            <span th:text="${e.type}"></span> —
+            <span th:text="${e.name}"></span> —
+            <span th:text="${e.date}"></span>
+            <span th:text="${e.description}"></span>
+        </a>
+    </li>
+</ul>
+</body>
+</html>
