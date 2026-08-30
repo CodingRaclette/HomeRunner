@@ -1,7 +1,8 @@
-package com.nyxeira.homerunner.usermanagement.security;
+package com.nyxeira.homerunner.usermanagement.services;
 
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 
+import com.nyxeira.homerunner.usermanagement.security.UserPrincipal;
 import org.jspecify.annotations.NullMarked;
 
 import org.springframework.security.core.userdetails.UserDetails;
