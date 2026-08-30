@@ -47,6 +47,7 @@ public class AccountController {
         // deuxième cas d'erreur : le nouveau mdp et la confirmation ne sont pas identiques
         if (!form.getNewPassword().equals(form.getConfirmPassword())) {
             bindingResult.rejectValue("confirmPassword", "error.passwords", "Le nouveau mot de passe et sa confirmation ne sont pas identiques.");
+            return "account/change-password";
         }
 
         // todo : on pourra ici ajouter des contraintes sur la présence de caractères spéciaux et chiffres.
