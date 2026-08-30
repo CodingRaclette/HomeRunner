@@ -31,6 +31,14 @@ public class Event extends Entry {
 
     public Event() {}
 
+    public Event(EventDTO d, User creator) {
+        this.name = d.getName();
+        this.date = d.getDate();
+        this.description = d.getDescription();
+        this.creator = creator;
+        this.endDate = d.getEndDate();
+    }
+
     public LocalDateTime getEndDate() { return endDate; }
     public Set<User> getParticipants() { return participants; }
     public void setParticipants(Set<User> participants) { this.participants = participants; }

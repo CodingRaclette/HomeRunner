@@ -36,6 +36,13 @@ public class Task extends Entry {
 
     public Task() {}
 
+    public Task(TaskDTO d, User creator) {
+        this.name = d.getName();
+        this.date = d.getDate();
+        this.description = d.getDescription();
+        this.creator = creator;
+    }
+
     public boolean isValidatedByOther() { return validatedByOther; }
 
     public Set<User> getAssignees() { return assignees; }
