@@ -34,11 +34,11 @@ public class MustChangePasswordFilter extends OncePerRequestFilter {
         if (auth != null
                 && auth.getPrincipal() instanceof UserPrincipal principal
                 && principal.getUser().isMustChangePassword()
-                && !req.getRequestURI().equals(WebPaths.CHANGE_PASSWORD) // évite la boucle infinie
+                && !req.getRequestURI().equals(WebPaths.CHANGE_PASSWORD_FULL) // évite la boucle infinie
                 && !req.getRequestURI().equals(WebPaths.LOGOUT)) // évite également la boucle infinie
         {
             // Si toutes les conditions sont remplies, on redirige l'utilisateur vers le changement de MDP
-            res.sendRedirect(WebPaths.CHANGE_PASSWORD);
+            res.sendRedirect(WebPaths.CHANGE_PASSWORD_FULL);
         } else {
             chain.doFilter(req, res); // Cas normal : rien à faire, on laisse la requête continuer son chemin
         }

@@ -31,23 +31,23 @@ public class AccountController {
         this.userManagementService = userManagementService;
     }
 
-    @GetMapping("/change-password")
+    @GetMapping(WebPaths.CHANGE_PASSWORD)
     public String getChangePasswordForm(Model model) {
         model.addAttribute("form", new ChangePasswordForm());
-        return "account/change-password";
+        return WebPaths.CHANGE_PASSWORD_FULL;
     }
 
-    @PostMapping("/change-password")
+    @PostMapping(WebPaths.CHANGE_PASSWORD)
     public String changePassword(@Valid @ModelAttribute("form") ChangePasswordForm form,
                                  BindingResult bindingResult, Principal principal) {
         // premier cas d'erreur : il y a des erreurs dans le formulaire
         if (bindingResult.hasErrors()) {
-            return "account/change-password";
+            return WebPaths.CHANGE_PASSWORD_FULL;
         }
         // deuxième cas d'erreur : le nouveau mdp et la confirmation ne sont pas identiques
         if (!form.getNewPassword().equals(form.getConfirmPassword())) {
             bindingResult.rejectValue("confirmPassword", "error.passwords", "Le nouveau mot de passe et sa confirmation ne sont pas identiques.");
-            return "account/change-password";
+            return WebPaths.CHANGE_PASSWORD_FULL;
         }
 
         // todo : on pourra ici ajouter des contraintes sur la présence de caractères spéciaux et chiffres.
@@ -61,7 +61,7 @@ public class AccountController {
 
         } catch (InvalidCurrentPasswordException e) {
             bindingResult.rejectValue("oldPassword", "invalid", "Le mot de passe actuel n'est pas correct.");
-            return "account/change-password";
+            return WebPaths.CHANGE_PASSWORD_FULL;
         }
         return "redirect:/";
 

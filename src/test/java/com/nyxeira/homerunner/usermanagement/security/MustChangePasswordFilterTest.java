@@ -77,7 +77,7 @@ class MustChangePasswordFilterTest {
 
         filter.doFilterInternal(request, response, chain);
 
-        verify(response).sendRedirect(WebPaths.CHANGE_PASSWORD);
+        verify(response).sendRedirect(WebPaths.CHANGE_PASSWORD_FULL);
         verify(chain, never()).doFilter(request, response);
     }
 
@@ -86,7 +86,7 @@ class MustChangePasswordFilterTest {
         User user = new User("alice", "a@homerunner.local", "hash", UserRole.MEMBER);
         user.setMustChangePassword(true);
         authenticateAs(user);
-        when(request.getRequestURI()).thenReturn(WebPaths.CHANGE_PASSWORD);
+        when(request.getRequestURI()).thenReturn(WebPaths.CHANGE_PASSWORD_FULL);
 
         filter.doFilterInternal(request, response, chain);
 
