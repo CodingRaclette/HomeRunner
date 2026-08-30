@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import static jakarta.persistence.InheritanceType.SINGLE_TABLE;
 
@@ -45,6 +46,8 @@ public abstract class Entry {
 
     public abstract EntryType getType();
 
-
+    // Je l'ajoute à ce niveau pour l'instant, mais cela pourrait poser question lors de l'ajout de nouvelles entrées
+    // qui n'auraient pas de participants
+    public abstract Set<User> getParticipants();
 
 }
