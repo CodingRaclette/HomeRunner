@@ -1,5 +1,6 @@
 package com.nyxeira.homerunner.entrymodel.model;
 
+import com.nyxeira.homerunner.entrylife.dto.EventDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
