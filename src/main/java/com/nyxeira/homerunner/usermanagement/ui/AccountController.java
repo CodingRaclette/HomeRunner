@@ -34,6 +34,7 @@ public class AccountController {
     @GetMapping(WebPaths.CHANGE_PASSWORD)
     public String getChangePasswordForm(Model model) {
         model.addAttribute("form", new ChangePasswordForm());
+        model.addAttribute("actionPath", WebPaths.CHANGE_PASSWORD_FULL);
         return WebPaths.CHANGE_PASSWORD_FULL;
     }
 

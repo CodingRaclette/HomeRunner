@@ -27,7 +27,7 @@ public final class WebPaths {
 
     // Gestion de compte
     public static final String ACCOUNT = "/account";
-    public static final String CHANGE_PASSWORD = "/change-pwd";
+    public static final String CHANGE_PASSWORD = "/change-password";
     public static final String CHANGE_PASSWORD_FULL = ACCOUNT + CHANGE_PASSWORD;
 
 
