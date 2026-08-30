@@ -1,6 +1,7 @@
 package com.nyxeira.homerunner.entrymodel.model;
 
 
+import com.nyxeira.homerunner.entrylife.dto.TaskDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -22,17 +23,16 @@ import java.util.Set;
  */
 @DiscriminatorValue("TASK")
 @Entity
-public class Task extends Entry {
+public class Task extends Entry implements Trackable {
 
     boolean validatedByOther;
-
     @ManyToMany
     @JoinTable(name="task_assignees")
     private Set<User> assignees = new HashSet<>();
-
     @ManyToMany
     @JoinTable(name="task_contributors")
-    private Set<User> contributors = new HashSet<>();
+    private final Set<User> contributors = new HashSet<>();
+
 
     public Task() {}
 
@@ -44,14 +44,32 @@ public class Task extends Entry {
     }
 
     public boolean isValidatedByOther() { return validatedByOther; }
+    @Override
+    public void setValidatedByOther(boolean b) { this.validatedByOther = b; }
 
-    public Set<User> getAssignees() { return assignees; }
+    @Override
+    public Set<User> getParticipants() { return assignees; }
+
+    @Override
+    public boolean isDone() {
+        return isValidatedByOther() | !getContributors().isEmpty();
+    }
+
+    @Override
+    public Set<User> getAssignees() { return this.assignees; }
+
     public void setAssignees(Set<User> assignees) { this.assignees = assignees; }
     public void addAssignee(User assignee) { this.assignees.add(assignee); }
     public void removeAssignee(User assignee) { this.assignees.remove(assignee); }
 
     public Set<User> getContributors() { return contributors; }
 
+    @Override
+    public void addContributor(User contributor) { this.contributors.add(contributor); }
+    @Override
+    public void removeContributor(User contributor) { this.contributors.remove(contributor); }
+    @Override
+    public boolean isContributor(User user) { return this.contributors.contains(user); }
 
     public EntryType getType() { return EntryType.TASK; }
 }
