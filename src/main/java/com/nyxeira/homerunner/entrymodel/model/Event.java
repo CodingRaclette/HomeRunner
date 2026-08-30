@@ -40,6 +40,8 @@ public class Event extends Entry {
     }
 
     public LocalDateTime getEndDate() { return endDate; }
+    public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
+
     public Set<User> getParticipants() { return participants; }
     public void setParticipants(Set<User> participants) { this.participants = participants; }
 
