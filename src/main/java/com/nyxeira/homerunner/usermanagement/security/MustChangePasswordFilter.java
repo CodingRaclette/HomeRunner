@@ -21,11 +21,6 @@ import java.io.IOException;
 // est ensuite redirigée/transférée en interne (évite les doubles vérifications)
 public class MustChangePasswordFilter extends OncePerRequestFilter {
 
-    public static final String STATIC_CSS = "/css/**";
-    public static final String STATIC_JS = "/js/**";
-    public static final String WEBJARS = "/webjars/**";
-    public static final String H2_CONSOLE = "/h2-console/**";
-
     private boolean isExcludedResource(String resource) {
         return resource.startsWith("/webjars/") || resource.startsWith("/css/") || resource.startsWith("/js/");
     }
