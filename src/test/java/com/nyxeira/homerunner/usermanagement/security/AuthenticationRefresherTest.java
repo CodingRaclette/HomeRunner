@@ -1,7 +1,6 @@
 package com.nyxeira.homerunner.usermanagement.security;
 
 import com.nyxeira.homerunner.usermanagement.model.User;
-import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
@@ -9,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 
 /**
  * SecurityContextHolder s'appuie sur un ThreadLocal : on nettoie systématiquement
@@ -24,7 +24,7 @@ class AuthenticationRefresherTest {
 
     @Test
     void remplaceLAuthenticationCouranteParUnPrincipalAJour() {
-        User updatedUser = new User("alice", "alice@homerunner.local", "nouveau-hash", UserRole.MEMBER);
+        User updatedUser = UserTestBuilder.aUser().withPasswordHash("nouveau-hash").build();
         updatedUser.setMustChangePassword(false);
 
         AuthenticationRefresher.refresh(updatedUser);

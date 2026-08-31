@@ -6,12 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 
 class UserPrincipalTest {
 
     @Test
     void exposeLeLoginCommeUsername() {
-        User user = new User("alice", "alice@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().build();
         UserPrincipal principal = new UserPrincipal(user);
 
         assertThat(principal.getUsername()).isEqualTo("alice");
@@ -19,7 +20,7 @@ class UserPrincipalTest {
 
     @Test
     void exposeLeHashCommePassword() {
-        User user = new User("alice", "alice@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().build();
         UserPrincipal principal = new UserPrincipal(user);
 
         assertThat(principal.getPassword()).isEqualTo("hash");
@@ -27,7 +28,11 @@ class UserPrincipalTest {
 
     @Test
     void prefixeLeRoleParRolePourSpringSecurity() {
-        User admin = new User("admin", "admin@homerunner.local", "hash", UserRole.ADMIN);
+        User admin = UserTestBuilder.aUser()
+                .withLogin("admin")
+                .withEmail("admin@homerunner.local")
+                .withRole(UserRole.ADMIN)
+                .build();
         UserPrincipal principal = new UserPrincipal(admin);
 
         assertThat(principal.getAuthorities())
@@ -37,7 +42,7 @@ class UserPrincipalTest {
 
     @Test
     void donneAccesAuUserSousJacent() {
-        User user = new User("alice", "alice@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().build();
         UserPrincipal principal = new UserPrincipal(user);
 
         assertThat(principal.getUser()).isSameAs(user);

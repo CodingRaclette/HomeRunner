@@ -1,7 +1,6 @@
 package com.nyxeira.homerunner.usermanagement.services;
 
 import com.nyxeira.homerunner.usermanagement.model.User;
-import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import com.nyxeira.homerunner.usermanagement.security.UserPrincipal;
 import org.junit.jupiter.api.Test;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
+import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 
 @ExtendWith(MockitoExtension.class)
 class HomerunnerUserDetailsServiceTest {
@@ -25,7 +25,7 @@ class HomerunnerUserDetailsServiceTest {
 
     @Test
     void chargeLUserEtLEnvelopeDansUnUserPrincipal() {
-        User user = new User("alice", "alice@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().build();
         when(userRepository.findByLogin("alice")).thenReturn(Optional.of(user));
 
         HomerunnerUserDetailsService service = new HomerunnerUserDetailsService(userRepository);

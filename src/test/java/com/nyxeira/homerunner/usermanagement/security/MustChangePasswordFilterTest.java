@@ -2,7 +2,6 @@ package com.nyxeira.homerunner.usermanagement.security;
 
 import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
-import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +17,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 
 /**
  * doFilterInternal est protected sur OncePerRequestFilter : on l'appelle
@@ -59,7 +59,7 @@ class MustChangePasswordFilterTest {
 
     @Test
     void laisseContinuerSiMustChangePasswordEstFaux() throws Exception {
-        User user = new User("alice", "a@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().withEmail("a@homerunner.local").build();
         user.setMustChangePassword(false);
         authenticateAs(user);
 
@@ -70,7 +70,7 @@ class MustChangePasswordFilterTest {
 
     @Test
     void rediredigeVersChangePasswordSiLeDrapeauEstActif() throws Exception {
-        User user = new User("alice", "a@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().withEmail("a@homerunner.local").build();
         user.setMustChangePassword(true);
         authenticateAs(user);
         when(request.getRequestURI()).thenReturn("/calendar");
@@ -83,7 +83,7 @@ class MustChangePasswordFilterTest {
 
     @Test
     void nEvitePasLaBoucleSurLaPageDeChangementElleMeme() throws Exception {
-        User user = new User("alice", "a@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().withEmail("a@homerunner.local").build();
         user.setMustChangePassword(true);
         authenticateAs(user);
         when(request.getRequestURI()).thenReturn(WebPaths.CHANGE_PASSWORD_FULL);
@@ -96,7 +96,7 @@ class MustChangePasswordFilterTest {
 
     @Test
     void laisseToujoursPasserLeLogout() throws Exception {
-        User user = new User("alice", "a@homerunner.local", "hash", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().withEmail("a@homerunner.local").build();
         user.setMustChangePassword(true);
         authenticateAs(user);
         when(request.getRequestURI()).thenReturn(WebPaths.LOGOUT);

@@ -2,7 +2,6 @@ package com.nyxeira.homerunner.entrymodel.model;
 
 import com.nyxeira.homerunner.entrymodel.repositories.EntryRepository;
 import com.nyxeira.homerunner.usermanagement.model.User;
-import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -16,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 
 /**
  * Volontairement placé dans le package entrymodel.model (et non
@@ -37,7 +37,7 @@ class EntryRepositoryTest {
     TestEntityManager em;
 
     private User persistCreator() {
-        User creator = new User("alice", "alice@homerunner.local", "hash", UserRole.MEMBER);
+        User creator = UserTestBuilder.aUser().build();
         return em.persistAndFlush(creator);
     }
 

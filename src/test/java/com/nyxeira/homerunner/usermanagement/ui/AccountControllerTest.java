@@ -2,7 +2,6 @@ package com.nyxeira.homerunner.usermanagement.ui;
 
 import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
-import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.services.exceptions.InvalidCurrentPasswordException;
 import com.nyxeira.homerunner.usermanagement.services.UserManagementService;
 import com.nyxeira.homerunner.usermanagement.ui.forms.ChangePasswordForm;
@@ -20,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 
 /**
  * Tests unitaires purs : BindingResult est une vraie BeanPropertyBindingResult
@@ -80,7 +80,7 @@ class AccountControllerTest {
     @Test
     void appelleLeServiceAvecLAncienEtLeNouveauMdpDansLeBonOrdre() {
         when(principal.getName()).thenReturn("alice");
-        User updatedUser = new User("alice", "a@homerunner.local", "Alice", "nouveau-hash", UserRole.MEMBER);
+        User updatedUser = UserTestBuilder.aUser().withEmail("a@homerunner.local").withPasswordHash("nouveau-hash").build();
         when(userManagementService.changePassword("alice", "ancien-mdp", "nouveauMdp123"))
                 .thenReturn(updatedUser);
 

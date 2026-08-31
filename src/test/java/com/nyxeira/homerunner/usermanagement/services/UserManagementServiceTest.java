@@ -1,7 +1,6 @@
 package com.nyxeira.homerunner.usermanagement.services;
 
 import com.nyxeira.homerunner.usermanagement.model.User;
-import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import com.nyxeira.homerunner.usermanagement.services.exceptions.InvalidCurrentPasswordException;
 import org.junit.jupiter.api.Test;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
+import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 
 @ExtendWith(MockitoExtension.class)
 class UserManagementServiceTest {
@@ -38,7 +38,7 @@ class UserManagementServiceTest {
 
     @Test
     void leveInvalidCurrentPasswordSiLAncienMdpNeCorrespondPas() {
-        User user = new User("alice", "alice@homerunner.local", "Alice","hash-actuel", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().withPasswordHash("hash-actuel").build();
         when(userRepository.findByLogin("alice")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("mauvais-mdp", "hash-actuel")).thenReturn(false);
 
@@ -50,7 +50,7 @@ class UserManagementServiceTest {
 
     @Test
     void metAJourLeHashEtLeveLeDrapeauMustChangePasswordSiLAncienMdpEstCorrect() {
-        User user = new User("alice", "alice@homerunner.local", "Alice","hash-actuel", UserRole.MEMBER);
+        User user = UserTestBuilder.aUser().withPasswordHash("hash-actuel").build();
         user.setMustChangePassword(true);
         when(userRepository.findByLogin("alice")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("bon-mdp", "hash-actuel")).thenReturn(true);
