@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class EntryForm {
+public class CreateEntryForm {
     @NotNull
     private EntryType type;
     @NotBlank

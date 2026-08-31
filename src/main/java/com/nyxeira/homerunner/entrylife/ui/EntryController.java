@@ -26,7 +26,7 @@ public class EntryController {
 
     @GetMapping(WebPaths.ENTRY_NEW)
     public String getCreateForm(@RequestParam EntryType type, Model model) {
-        EntryForm form = new EntryForm();
+        CreateEntryForm form = new CreateEntryForm();
         form.setType(type);
         model.addAttribute("form", form);
         return FORM_PATH;
@@ -34,7 +34,7 @@ public class EntryController {
 
 
     @PostMapping
-    public String createEntry(@Valid @ModelAttribute("form") EntryForm form, BindingResult bindingResult,
+    public String createEntry(@Valid @ModelAttribute("form") CreateEntryForm form, BindingResult bindingResult,
                               Principal principal) {
 
         if (bindingResult.hasErrors()) {
