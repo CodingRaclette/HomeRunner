@@ -21,6 +21,14 @@ import java.io.IOException;
 // est ensuite redirigée/transférée en interne (évite les doubles vérifications)
 public class MustChangePasswordFilter extends OncePerRequestFilter {
 
+    public static final String STATIC_CSS = "/css/**";
+    public static final String STATIC_JS = "/js/**";
+    public static final String WEBJARS = "/webjars/**";
+    public static final String H2_CONSOLE = "/h2-console/**";
+
+    private boolean isExcludedResource(String resource) {
+        return resource.startsWith("/webjars/") || resource.startsWith("/css/") || resource.startsWith("/js/");
+    }
 
     @Override
     @NullMarked
@@ -35,7 +43,8 @@ public class MustChangePasswordFilter extends OncePerRequestFilter {
                 && auth.getPrincipal() instanceof UserPrincipal principal
                 && principal.getUser().isMustChangePassword()
                 && !req.getRequestURI().equals(WebPaths.CHANGE_PASSWORD_FULL) // évite la boucle infinie
-                && !req.getRequestURI().equals(WebPaths.LOGOUT)) // évite également la boucle infinie
+                && !req.getRequestURI().equals(WebPaths.LOGOUT) // évite également la boucle infinie
+                && !isExcludedResource(req.getRequestURI()))
         {
             // Si toutes les conditions sont remplies, on redirige l'utilisateur vers le changement de MDP
             res.sendRedirect(WebPaths.CHANGE_PASSWORD_FULL);

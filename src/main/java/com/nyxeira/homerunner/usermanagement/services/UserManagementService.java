@@ -1,8 +1,13 @@
 package com.nyxeira.homerunner.usermanagement.services;
 
 
+import com.nyxeira.homerunner.usermanagement.dto.CreateUserDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
+import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
+import com.nyxeira.homerunner.usermanagement.services.exceptions.EmailAlreadyUsedException;
+import com.nyxeira.homerunner.usermanagement.services.exceptions.InvalidCurrentPasswordException;
+import com.nyxeira.homerunner.usermanagement.services.exceptions.LoginAlreadyUsedException;
 import jakarta.transaction.Transactional;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -36,6 +41,23 @@ public class UserManagementService {
         user.setMustChangePassword(false);
 
         // On retourne l'utilisateur mis à jour pour la session courante
+        return user;
+    }
+
+    @Transactional
+    public User createUser(CreateUserDTO c) {
+        // verif du login
+        if (userRepository.existsByLogin(c.getLogin())) {
+            throw new LoginAlreadyUsedException();
+        }
+        if (userRepository.existsByEmail(c.getEmail())) {
+            throw new EmailAlreadyUsedException();
+        }
+        String passwordHash = passwordEncoder.encode(c.getPassword());
+
+        User user = new User(c.getLogin(), c.getEmail(), c.getName(), passwordHash, UserRole.MEMBER);
+        user.setMustChangePassword(true);
+        userRepository.save(user);
         return user;
     }
 

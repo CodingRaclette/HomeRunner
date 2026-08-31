@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:insert="~{fragments/layout :: head(title='Liste des utilisateurs')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container">
+    <h1 class="mb-4">Liste des utilisateurs</h1>
+    <a th:href="@{/admin/users/new}" class="btn btn-primary mb-3">Nouvel utilisateur</a>
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>Nom d'utilisateur</th>
+            <th>Login</th>
+            <th>Email</th>
+            <th>Doit changer de mot de passe ?</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="u : ${userlist}">
+            <td th:text="${u.name}"></td>
+            <td th:text="${u.login}"></td>
+            <td th:text="${u.email}"></td>
+            <td th:text="${u.mustChangePassword}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
