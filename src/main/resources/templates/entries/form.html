@@ -1,18 +1,34 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
-<head><title>Nouvelle entrée</title></head>
+<head th:insert="~{fragments/layout :: head(title='Nouvelle entrée')}"></head>
 <body>
-<h1>Nouvelle entrée (<span th:text="${form.type}"></span>)</h1>
-<form th:action="@{/entries}" th:object="${form}" method="post">
-    <input type="hidden" th:field="*{type}" th:value="${form.type}"/>
-    <label>Nom : <input type="text" th:field="*{name}"/></label>
-    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div><br/>
-    <label>Date : <input type="datetime-local" th:field="*{date}"/></label>
-    <div th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div><br/>
-    <label th:if="${form.type.name() == 'EVENT'}">Date de fin : <input type="datetime-local" th:field="*{endDate}"/></label>
-    <div th:if="${#fields.hasErrors('endDateValid')}" th:errors="*{endDateValid}"></div><br/>
-    <label>Description : <textarea th:field="*{description}"></textarea></label><br/>
-    <button type="submit">Créer</button>
-</form>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container" style="max-width: 500px;">
+    <h1 class="mb-4">Nouvelle entrée (<span th:text="${form.type}"></span>)</h1>
+    <form th:action="@{/entries}" th:object="${form}" method="post">
+        <input type="hidden" th:field="*{type}" th:value="${form.type}"/>
+        <div class="mb-3">
+            <label class="form-label">Titre</label>
+            <input type="text" th:field="*{name}" class="form-control"/>
+            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Date</label>
+            <input type="datetime-local" th:field="*{date}" class="form-control"/>
+            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
+        </div>
+        <div class="mb-3" th:if="${form.type.name() == 'EVENT'}">
+            <label class="form-label">Date de fin</label>
+            <input type="datetime-local" th:field="*{endDate}" class="form-control"/>
+            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('endDateValid')}" th:errors="*{endDateValid}"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea th:field="*{description}" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Créer</button>
+    </form>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

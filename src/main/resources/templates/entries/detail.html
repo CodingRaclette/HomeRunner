@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
-<head><title>Détail de l'entrée</title></head>
+<head th:insert="~{fragments/layout :: head(title=${entry.name})}"></head>
 <body>
-<h1 th:text="${entry.name}"></h1>
-<p>Type : <span th:text="${entry.type}"></span></p>
-<p>Date : <span th:text="${entry.date}"></span></p>
-<p th:if="${entry.description}">Description : <span th:text="${entry.description}"></span></p>
-<p>Créateur : <span th:text="${entry.creator.login}"></span></p>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container">
+    <h1 th:text="${entry.name}"></h1>
+    <p>Type : <span class="badge text-bg-secondary" th:text="${entry.type}"></span></p>
+    <p>Date : <span th:text="${entry.date}"></span></p>
+    <p th:if="${entry.description}">Description : <span th:text="${entry.description}"></span></p>
+    <p>Créateur : <span th:text="${entry.creator.login}"></span></p>
 
-<div th:if="${entry.type.name() == 'EVENT'}">
-    <p>Fin : <span th:text="${entry.endDate}"></span></p>
-    <p>Participants :</p>
-    <ul>
-        <li th:each="u : ${entry.participants}" th:text="${u.login}"></li>
-    </ul>
+    <div th:if="${entry.type.name() == 'EVENT'}">
+        <p>Fin : <span th:text="${entry.endDate}"></span></p>
+        <p>Participants :</p>
+        <ul class="list-group">
+            <li class="list-group-item" th:each="u : ${entry.participants}" th:text="${u.login}"></li>
+        </ul>
+    </div>
+
+    <div th:if="${entry.type.name() == 'TASK'}">
+        <p>Terminée : <span th:text="${entry.done}"></span></p>
+        <p>Assignés :</p>
+        <ul class="list-group">
+            <li class="list-group-item" th:each="u : ${entry.assignees}" th:text="${u.login}"></li>
+        </ul>
+    </div>
+
+    <a href="/" class="btn btn-secondary mt-3">Retour à la liste</a>
 </div>
-
-<div th:if="${entry.type.name() == 'TASK'}">
-    <p>Terminée : <span th:text="${entry.done}"></span></p>
-    <p>Assignés :</p>
-    <ul>
-        <li th:each="u : ${entry.assignees}" th:text="${u.login}"></li>
-    </ul>
-</div>
-
-<a href="/">Retour à la liste</a>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>
