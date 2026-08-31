@@ -5,7 +5,7 @@ import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.security.AuthenticationRefresher;
 
-import com.nyxeira.homerunner.usermanagement.services.InvalidCurrentPasswordException;
+import com.nyxeira.homerunner.usermanagement.services.exceptions.InvalidCurrentPasswordException;
 import com.nyxeira.homerunner.usermanagement.services.UserManagementService;
 import com.nyxeira.homerunner.usermanagement.ui.forms.ChangePasswordForm;
 
