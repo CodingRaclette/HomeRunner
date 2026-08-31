@@ -1,7 +1,5 @@
 package com.nyxeira.homerunner.entrylife.ui;
 
-
-import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.entrylife.services.EntryLifeService;
 import com.nyxeira.homerunner.entrymodel.model.Entry;
 import com.nyxeira.homerunner.entrymodel.model.EntryType;
@@ -14,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
 @Controller
-@RequestMapping(WebPaths.ENTRIES)
+@RequestMapping("/entries")
 public class EntryController {
 
     private final EntryLifeService entryLifeService;
@@ -24,7 +22,7 @@ public class EntryController {
         this.entryLifeService = entryLifeService;
     }
 
-    @GetMapping(WebPaths.ENTRY_NEW)
+    @GetMapping("/new")
     public String getCreateForm(@RequestParam EntryType type, Model model) {
         CreateEntryForm form = new CreateEntryForm();
         form.setType(type);

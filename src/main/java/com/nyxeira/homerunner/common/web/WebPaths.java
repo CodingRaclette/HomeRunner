@@ -29,12 +29,4 @@ public final class WebPaths {
     public static final String CHANGE_PASSWORD = "/change-password";
     public static final String CHANGE_PASSWORD_FULL = ACCOUNT + CHANGE_PASSWORD;
 
-
-    // Gestion des entrées
-    public static final String ENTRIES = "/entries";
-    public static final String ENTRY_NEW = "/new";
-    public static final String ENTRY_NEW_FULL = ENTRIES + ENTRY_NEW;
-
-
-
 }
