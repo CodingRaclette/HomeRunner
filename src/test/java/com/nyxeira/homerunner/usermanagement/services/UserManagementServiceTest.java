@@ -3,6 +3,7 @@ package com.nyxeira.homerunner.usermanagement.services;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
+import com.nyxeira.homerunner.usermanagement.services.exceptions.InvalidCurrentPasswordException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
