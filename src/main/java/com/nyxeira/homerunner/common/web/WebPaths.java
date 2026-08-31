@@ -20,9 +20,6 @@ public final class WebPaths {
 
     // Administration
     public static final String ADMIN = "/admin";
-    public static final String USERS = "/users";
-    public static final String USERS_FULL = ADMIN + USERS;
-
 
     // Gestion de la connexion
     public static final String LOGOUT = "/logout";
