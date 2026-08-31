@@ -3,7 +3,7 @@ package com.nyxeira.homerunner.usermanagement.ui;
 import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
-import com.nyxeira.homerunner.usermanagement.services.InvalidCurrentPasswordException;
+import com.nyxeira.homerunner.usermanagement.services.exceptions.InvalidCurrentPasswordException;
 import com.nyxeira.homerunner.usermanagement.services.UserManagementService;
 import com.nyxeira.homerunner.usermanagement.ui.forms.ChangePasswordForm;
 import org.junit.jupiter.api.BeforeEach;
