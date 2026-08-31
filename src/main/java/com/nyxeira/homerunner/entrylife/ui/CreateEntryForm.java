@@ -28,7 +28,7 @@ public class CreateEntryForm {
         return type != EntryType.EVENT || endDate == null || endDate.isAfter(date);
     }
 
-    public EventDTO toEventData() {
+    public EventDTO toEventDTO() {
         EventDTO d = new EventDTO();
         d.setName(name);
         d.setDate(date);
@@ -38,7 +38,7 @@ public class CreateEntryForm {
         return d;
     }
 
-    public TaskDTO toTaskData() {
+    public TaskDTO toTaskDTO() {
         TaskDTO d = new TaskDTO();
         d.setName(name);
         d.setDate(date);

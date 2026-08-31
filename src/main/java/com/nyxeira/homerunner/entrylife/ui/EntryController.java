@@ -41,8 +41,8 @@ public class EntryController {
             return FORM_PATH;
         }
         Long id = switch (form.getType()) {
-            case EVENT -> entryLifeService.createEvent(form.toEventData(), principal.getName());
-            case TASK -> entryLifeService.createTask(form.toTaskData(), principal.getName());
+            case EVENT -> entryLifeService.createEvent(form.toEventDTO(), principal.getName());
+            case TASK -> entryLifeService.createTask(form.toTaskDTO(), principal.getName());
         };
         return "redirect:/entries/" + id;
     }
