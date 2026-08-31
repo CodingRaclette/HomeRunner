@@ -80,7 +80,7 @@ class AccountControllerTest {
     @Test
     void appelleLeServiceAvecLAncienEtLeNouveauMdpDansLeBonOrdre() {
         when(principal.getName()).thenReturn("alice");
-        User updatedUser = new User("alice", "a@homerunner.local", "nouveau-hash", UserRole.MEMBER);
+        User updatedUser = new User("alice", "a@homerunner.local", "Alice", "nouveau-hash", UserRole.MEMBER);
         when(userManagementService.changePassword("alice", "ancien-mdp", "nouveauMdp123"))
                 .thenReturn(updatedUser);
 

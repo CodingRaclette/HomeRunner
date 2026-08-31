@@ -38,7 +38,7 @@ public class AdminAccountInitializer implements ApplicationRunner {
             rawPassword = UUID.randomUUID().toString().substring(0, 12);
         }
 
-        User admin = new User("admin", "admin@homerunner.local",
+        User admin = new User("admin", "admin@homerunner.local", "Administrateur",
                 passwordEncoder.encode(rawPassword), UserRole.ADMIN);
         admin.setMustChangePassword(true);
         userRepository.save(admin);
