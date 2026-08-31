@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // On laisse d'abord passer les ressources statiques pour tout le monde avant d'interdire le reste aux non-connectés
                         .requestMatchers(STATIC_CSS, STATIC_JS, WEBJARS, H2_CONSOLE).permitAll()
-                        .requestMatchers(ADMIN).hasRole("ADMIN")
+                        .requestMatchers(ADMIN+"/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
 
                 // todo : Formulaire de connexion standard de SpringSecurity (/login), à faire évoluer plus tard

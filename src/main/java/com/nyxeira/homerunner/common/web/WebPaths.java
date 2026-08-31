@@ -19,10 +19,12 @@ public final class WebPaths {
     public static final String H2_CONSOLE = "/h2-console/**";
 
     // Administration
-    public static final String ADMIN = "/admin/**";
+    public static final String ADMIN = "/admin";
+    public static final String USERS = "/users";
+    public static final String USERS_FULL = ADMIN + USERS;
+
 
     // Gestion de la connexion
-    public static final String LOGIN = "/login";
     public static final String LOGOUT = "/logout";
 
     // Gestion de compte
