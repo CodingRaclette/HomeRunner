@@ -38,7 +38,7 @@ class UserManagementServiceTest {
 
     @Test
     void leveInvalidCurrentPasswordSiLAncienMdpNeCorrespondPas() {
-        User user = new User("alice", "alice@homerunner.local", "hash-actuel", UserRole.MEMBER);
+        User user = new User("alice", "alice@homerunner.local", "Alice","hash-actuel", UserRole.MEMBER);
         when(userRepository.findByLogin("alice")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("mauvais-mdp", "hash-actuel")).thenReturn(false);
 
@@ -50,7 +50,7 @@ class UserManagementServiceTest {
 
     @Test
     void metAJourLeHashEtLeveLeDrapeauMustChangePasswordSiLAncienMdpEstCorrect() {
-        User user = new User("alice", "alice@homerunner.local", "hash-actuel", UserRole.MEMBER);
+        User user = new User("alice", "alice@homerunner.local", "Alice","hash-actuel", UserRole.MEMBER);
         user.setMustChangePassword(true);
         when(userRepository.findByLogin("alice")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("bon-mdp", "hash-actuel")).thenReturn(true);
