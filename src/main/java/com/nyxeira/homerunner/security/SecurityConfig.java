@@ -37,6 +37,9 @@ public class SecurityConfig {
                 // active "/logout" qui déconnecte la session
                 .logout(Customizer.withDefaults())
 
+                // Ajout d'un remember me pour ne pas avoir à reconnecter à chaque refresh du contexte Spring
+                .rememberMe(rm -> rm.key("homerunner-dev-remember-me-key"))
+
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 // La console H2 poste ses requêtes sans jeton CSRF (elle ne connaît pas Spring Security) ; sans
                 // l'exception suivante, chaque requête est rejetée 403.
