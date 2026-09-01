@@ -1,7 +1,5 @@
 package com.nyxeira.homerunner.usermanagement.ui;
 
-import com.nyxeira.homerunner.common.web.WebPaths;
-import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import com.nyxeira.homerunner.usermanagement.services.UserManagementService;
 
