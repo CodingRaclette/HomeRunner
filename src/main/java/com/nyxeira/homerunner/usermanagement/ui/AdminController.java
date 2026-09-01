@@ -1,9 +1,12 @@
 package com.nyxeira.homerunner.usermanagement.ui;
 
+import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import com.nyxeira.homerunner.usermanagement.services.UserManagementService;
 
+import com.nyxeira.homerunner.usermanagement.services.exceptions.EmailAlreadyUsedException;
+import com.nyxeira.homerunner.usermanagement.services.exceptions.LoginAlreadyUsedException;
 import com.nyxeira.homerunner.usermanagement.ui.forms.CreateUserForm;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -41,13 +44,19 @@ public class AdminController {
     }
 
     @PostMapping("/users/new")
-    public String createUser(@Valid @ModelAttribute("form") CreateUserForm form,
-                             BindingResult bindingResult) {
+    public String createUser(@Valid @ModelAttribute("form") CreateUserForm form, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return FORM_PATH;
         }
-
-        User u = userManagementService.createUser(form.toDTO());
+        try {
+            userManagementService.createUser(form.toDTO());
+        } catch (LoginAlreadyUsedException e) {
+            bindingResult.rejectValue("login", "invalid", "Le login renseigné existe déjà.");
+            return FORM_PATH;
+        } catch (EmailAlreadyUsedException e) {
+            bindingResult.rejectValue("email", "invalid", "Le mail renseigné existe déjà.");
+            return FORM_PATH;
+        }
         return "redirect:/admin/users";
     }
 

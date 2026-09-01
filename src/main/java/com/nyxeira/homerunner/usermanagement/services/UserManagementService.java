@@ -45,7 +45,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public User createUser(CreateUserDTO c) {
+    public void createUser(CreateUserDTO c) {
         // verif du login
         if (userRepository.existsByLogin(c.getLogin())) {
             throw new LoginAlreadyUsedException();
@@ -58,7 +58,6 @@ public class UserManagementService {
         User user = new User(c.getLogin(), c.getEmail(), c.getName(), passwordHash, UserRole.MEMBER);
         user.setMustChangePassword(true);
         userRepository.save(user);
-        return user;
     }
 
 }
