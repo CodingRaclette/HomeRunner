@@ -8,23 +8,27 @@
     <form th:action="@{/entries}" th:object="${form}" method="post">
         <input type="hidden" th:field="*{type}" th:value="${form.type}"/>
         <div class="mb-3">
-            <label class="form-label">Titre</label>
+            <label class="form-label">Titre
             <input type="text" th:field="*{name}" class="form-control"/>
+            </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Date</label>
+            <label class="form-label">Date
             <input type="datetime-local" th:field="*{date}" class="form-control"/>
+            </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
         </div>
         <div class="mb-3" th:if="${form.type.name() == 'EVENT'}">
-            <label class="form-label">Date de fin</label>
+            <label class="form-label">Date de fin
             <input type="datetime-local" th:field="*{endDate}" class="form-control"/>
+            </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('endDateValid')}" th:errors="*{endDateValid}"></div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Description</label>
+            <label class="form-label">Description
             <textarea th:field="*{description}" class="form-control"></textarea>
+            </label>
         </div>
         <button type="submit" class="btn btn-primary">Créer</button>
     </form>
