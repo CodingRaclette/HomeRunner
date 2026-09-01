@@ -30,9 +30,28 @@
             <textarea th:field="*{description}" class="form-control"></textarea>
             </label>
         </div>
+        <div class="mb-3" th:if="${form.type.name() == 'EVENT'}">
+            <label class="form-label">Participants</label>
+            <div class="position-relative">
+                <input type="text" id="participant-search" class="form-control"
+                       placeholder="Rechercher un participant..." autocomplete="off"/>
+                <div id="participant-suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
+            </div>
+            <div id="participant-tags" class="d-flex flex-wrap gap-2 mt-2"></div>
+            <!-- un <input type="hidden" name="participantIds"> est ajoute ici par participant-picker.js
+                 pour chaque participant selectionne : c'est ce qui alimente form.participantIds -->
+            <div id="participant-inputs"></div>
+        </div>
+
         <button type="submit" class="btn btn-primary">Créer</button>
     </form>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+    /*<![CDATA[*/
+    var participantCandidates = /*[[${participantCandidates}]]*/ [];
+    /*]]>*/
+</script>
+<script th:src="@{/js/participant-picker.js}"></script>
 </body>
 </html>
