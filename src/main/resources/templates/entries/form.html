@@ -30,7 +30,7 @@
             <textarea th:field="*{description}" class="form-control"></textarea>
             </label>
         </div>
-        <div class="mb-3" th:if="${form.type.name() == 'EVENT'}">
+        <div class="mb-3">
             <label class="form-label">Participants</label>
             <div class="position-relative">
                 <input type="text" id="participant-search" class="form-control"
