@@ -27,8 +27,10 @@ public class EntryController {
         this.userRepository = userRepository;
     }
 
+    // "type" n'est plus qu'une pre-selection : le formulaire permet desormais de basculer
+    // dynamiquement (cote client) entre EVENT et TASK sans recharger la page.
     @GetMapping("/new")
-    public String getCreateForm(@RequestParam EntryType type, Model model) {
+    public String getCreateForm(@RequestParam(required = false, defaultValue = "EVENT") EntryType type, Model model) {
         CreateEntryForm form = new CreateEntryForm();
         form.setType(type);
         model.addAttribute("form", form);

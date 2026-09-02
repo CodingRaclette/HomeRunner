@@ -4,9 +4,20 @@
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div class="container" style="max-width: 500px;">
-    <h1 class="mb-4">Nouvelle entrée (<span th:text="${form.type}"></span>)</h1>
+    <h1 class="mb-4">Nouvelle entrée (<span id="entry-type-label" th:text="${form.type}"></span>)</h1>
     <form th:action="@{/entries}" th:object="${form}" method="post">
-        <input type="hidden" th:field="*{type}" th:value="${form.type}"/>
+
+        <div class="mb-3">
+            <label class="form-label d-block">Type</label>
+            <div class="btn-group" role="group" aria-label="Type d'entrée">
+                <input type="radio" th:field="*{type}" th:value="EVENT" class="btn-check" autocomplete="off"/>
+                <label th:for="${#ids.prev('type')}" class="btn btn-outline-primary">Évènement</label>
+
+                <input type="radio" th:field="*{type}" th:value="TASK" class="btn-check" autocomplete="off"/>
+                <label th:for="${#ids.prev('type')}" class="btn btn-outline-primary">Tâche</label>
+            </div>
+        </div>
+
         <div class="mb-3">
             <label class="form-label">Titre
             <input type="text" th:field="*{name}" class="form-control"/>
@@ -19,7 +30,7 @@
             </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
         </div>
-        <div class="mb-3" th:if="${form.type.name() == 'EVENT'}">
+        <div class="mb-3 entry-field-event" th:classappend="${form.type.name() == 'EVENT'} ? '' : 'd-none'">
             <label class="form-label">Date de fin
             <input type="datetime-local" th:field="*{endDate}" class="form-control"/>
             </label>
@@ -30,28 +41,42 @@
             <textarea th:field="*{description}" class="form-control"></textarea>
             </label>
         </div>
-        <div class="mb-3">
+        <div class="mb-3 entry-field-event" th:classappend="${form.type.name() == 'EVENT'} ? '' : 'd-none'">
             <label class="form-label">Participants</label>
             <div class="position-relative">
                 <input type="text" id="participant-search" class="form-control"
-                       placeholder="Rechercher un participant..." autocomplete="off"/>
+                       placeholder="Rechercher un participant..." autocomplete="on"/>
                 <div id="participant-suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
             </div>
             <div id="participant-tags" class="d-flex flex-wrap gap-2 mt-2"></div>
-            <!-- un <input type="hidden" name="participantIds"> est ajoute ici par participant-picker.js
+            <!-- un <input type="hidden" name="participantIds"> est ajoute ici par person-picker.js
                  pour chaque participant selectionne : c'est ce qui alimente form.participantIds -->
             <div id="participant-inputs"></div>
+        </div>
+
+        <div class="mb-3 entry-field-task" th:classappend="${form.type.name() == 'TASK'} ? '' : 'd-none'">
+            <label class="form-label">Assignés</label>
+            <div class="position-relative">
+                <input type="text" id="assignee-search" class="form-control"
+                       placeholder="Rechercher un assigné..." autocomplete="off"/>
+                <div id="assignee-suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
+            </div>
+            <div id="assignee-tags" class="d-flex flex-wrap gap-2 mt-2"></div>
+            <!-- un <input type="hidden" name="assigneeIds"> est ajoute ici par person-picker.js
+                 pour chaque assigne selectionne : c'est ce qui alimente form.assigneeIds -->
+            <div id="assignee-inputs"></div>
         </div>
 
         <button type="submit" class="btn btn-primary">Créer</button>
     </form>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
-<script>
+<script th:inline="javascript">
     /*<![CDATA[*/
     var participantCandidates = /*[[${participantCandidates}]]*/ [];
     /*]]>*/
 </script>
 <script th:src="@{/js/participant-picker.js}"></script>
+<script th:src="@{/js/entry-type-toggle.js}"></script>
 </body>
 </html>
