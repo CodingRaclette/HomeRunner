@@ -1,17 +1,15 @@
 package com.nyxeira.homerunner.entrylife.dto;
 
 
-import java.util.List;
-
 public class TaskDTO extends EntryDTO {
 
-    private List<Long> assigneeIds;
+    private boolean validatedByOther;
 
-    public List<Long> getAssigneeIds() {
-        return assigneeIds;
+    public boolean isValidatedByOther() {
+        return validatedByOther;
     }
 
-    public void setAssigneeIds(List<Long> assigneeIds) {
-        this.assigneeIds = assigneeIds;
+    public void setValidatedByOther(boolean validatedByOther) {
+        this.validatedByOther = validatedByOther;
     }
 }

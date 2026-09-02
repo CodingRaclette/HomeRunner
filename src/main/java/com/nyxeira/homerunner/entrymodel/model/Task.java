@@ -1,6 +1,7 @@
 package com.nyxeira.homerunner.entrymodel.model;
 
 
+import com.nyxeira.homerunner.entrylife.dto.EntryDTO;
 import com.nyxeira.homerunner.entrylife.dto.TaskDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import jakarta.persistence.DiscriminatorValue;
@@ -9,6 +10,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -51,18 +53,27 @@ public class Task extends Entry implements Trackable {
     public Set<User> getParticipants() { return assignees; }
 
     @Override
+    public void setParticipants(Set<User> participants) {
+        this.assignees = participants;
+    }
+
+    @Override
+    public void applyData(EntryDTO dto) {
+        TaskDTO taskDTO = (TaskDTO)dto;
+        this.name = taskDTO.getName();
+        this.date = taskDTO.getDate();
+        this.description = taskDTO.getDescription();
+    }
+
+    @Override
     public boolean isDone() {
         return isValidatedByOther() | !getContributors().isEmpty();
     }
 
-    @Override
-    public Set<User> getAssignees() { return this.assignees; }
-
-    public void setAssignees(Set<User> assignees) { this.assignees = assignees; }
-    public void addAssignee(User assignee) { this.assignees.add(assignee); }
-    public void removeAssignee(User assignee) { this.assignees.remove(assignee); }
-
     public Set<User> getContributors() { return contributors; }
+    public List<Long> getContributorIds() {
+        return contributors.stream().map(User::getId).toList();
+    }
 
     @Override
     public void addContributor(User contributor) { this.contributors.add(contributor); }

@@ -1,17 +1,20 @@
-// Widget generique de recherche/ajout de personnes (participants d'un Event, assignes
-// d'une Task...) pour le formulaire de creation d'entree. Aucune dependance : filtrage
-// cote client sur un tableau de candidats fourni en options, ajout sous forme de tags +
-// champs caches (name = options.inputName) qui alimentent la liste d'IDs cote serveur.
+// Widget de recherche/ajout de participants (commun a Event et Task, le champ
+// participantIds n'est plus distingue par type) pour le formulaire de creation/edition
+// d'entree. Aucune dependance : filtrage cote client sur un tableau de candidats fourni
+// en options, ajout sous forme de tags + champs caches (name = options.inputName) qui
+// alimentent la liste d'IDs cote serveur. En edition, options.initialSelectedIds
+// pre-remplit la selection avec les participants deja lies a l'entree.
 function createPersonPicker(options) {
     const searchInput = document.getElementById(options.searchInputId);
     if (!searchInput) {
-        return; // ce bloc n'est pas present sur la page (ex : type TASK masque les participants)
+        return; // ce bloc n'est pas present sur la page
     }
 
     const suggestionsBox = document.getElementById(options.suggestionsId);
     const tagsBox = document.getElementById(options.tagsId);
     const inputsBox = document.getElementById(options.inputsId);
     const candidates = options.candidates || [];
+    const initialSelectedIds = options.initialSelectedIds || [];
     const MAX_SUGGESTIONS = 5;
 
     const selected = new Map(); // id -> candidate
@@ -87,6 +90,12 @@ function createPersonPicker(options) {
             suggestionsBox.innerHTML = '';
         }
     });
+
+    // pre-selection (edition) : on ajoute les candidats deja lies a l'entree
+    initialSelectedIds
+        .map(id => candidates.find(c => c.id === id))
+        .filter(c => c !== undefined)
+        .forEach(addPerson);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -100,15 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tagsId: 'participant-tags',
         inputsId: 'participant-inputs',
         inputName: 'participantIds',
-        candidates: participantCandidates
-    });
-
-    createPersonPicker({
-        searchInputId: 'assignee-search',
-        suggestionsId: 'assignee-suggestions',
-        tagsId: 'assignee-tags',
-        inputsId: 'assignee-inputs',
-        inputName: 'assigneeIds',
-        candidates: participantCandidates
+        candidates: participantCandidates,
+        initialSelectedIds: (typeof selectedParticipantIds !== 'undefined' && selectedParticipantIds) ? selectedParticipantIds : []
     });
 });

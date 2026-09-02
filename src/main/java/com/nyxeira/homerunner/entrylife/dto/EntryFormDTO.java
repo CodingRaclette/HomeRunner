@@ -1,26 +1,34 @@
-package com.nyxeira.homerunner.entrylife.ui;
+package com.nyxeira.homerunner.entrylife.dto;
 
-import com.nyxeira.homerunner.entrylife.dto.EventDTO;
-import com.nyxeira.homerunner.entrylife.dto.TaskDTO;
+import com.nyxeira.homerunner.entrymodel.model.Entry;
 import com.nyxeira.homerunner.entrymodel.model.EntryType;
+import com.nyxeira.homerunner.entrymodel.model.Event;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class CreateEntryForm {
+public class EntryFormDTO {
+    private Long id;
     @NotNull
     private EntryType type;
     @NotBlank
     private String name;
+
     @NotNull
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime date;
-    private LocalDateTime endDate; // pertinent seulement si type == EVENT
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime endDate; // EVENT only
+
     private String description;
+
     private List<Long> participantIds;
-    private List<Long> assigneeIds;
+
 
     // cohérence des dates : @AssertTrue déclaratif plutôt qu'un if dans le contrôleur
     @AssertTrue(message = "La date de fin doit être postérieure à la date de début.")
@@ -30,25 +38,26 @@ public class CreateEntryForm {
 
     public EventDTO toEventDTO() {
         EventDTO d = new EventDTO();
-        d.setName(name);
-        d.setDate(date);
-        d.setDescription(description);
-        d.setEndDate(endDate);
-        d.setParticipantIds(participantIds);
+        d.setName(getName());
+        d.setDate(getDate());
+        d.setDescription(getDescription());
+        d.setEndDate(getEndDate());
+        d.setParticipantIds(getParticipantIds());
         return d;
     }
 
     public TaskDTO toTaskDTO() {
         TaskDTO d = new TaskDTO();
-        d.setName(name);
-        d.setDate(date);
-        d.setDescription(description);
-        d.setAssigneeIds(assigneeIds);
+        d.setName(getName());
+        d.setDate(getDate());
+        d.setDescription(getDescription());
+        d.setParticipantIds(getParticipantIds());
         return d;
     }
 
     public EntryFormDTO fromEntry(Entry e) {
         EntryFormDTO form = new EntryFormDTO();
+        form.setId(e.getId());
         form.setType(e.getType());
         form.setName(e.getName());
         form.setDate(e.getDate());
@@ -109,11 +118,11 @@ public class CreateEntryForm {
         this.participantIds = participantIds;
     }
 
-    public List<Long> getAssigneeIds() {
-        return assigneeIds;
+    public Long getId() {
+        return id;
     }
 
-    public void setAssigneeIds(List<Long> assigneeIds) {
-        this.assigneeIds = assigneeIds;
+    public void setId(Long id) {
+        this.id = id;
     }
 }

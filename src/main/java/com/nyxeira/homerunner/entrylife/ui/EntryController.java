@@ -1,5 +1,6 @@
 package com.nyxeira.homerunner.entrylife.ui;
 
+import com.nyxeira.homerunner.entrylife.dto.EntryFormDTO;
 import com.nyxeira.homerunner.entrylife.services.EntryLifeService;
 import com.nyxeira.homerunner.entrymodel.model.Entry;
 import com.nyxeira.homerunner.entrymodel.model.EntryType;
@@ -31,7 +32,7 @@ public class EntryController {
     // dynamiquement (cote client) entre EVENT et TASK sans recharger la page.
     @GetMapping("/new")
     public String getCreateForm(@RequestParam(required = false, defaultValue = "EVENT") EntryType type, Model model) {
-        CreateEntryForm form = new CreateEntryForm();
+        EntryFormDTO form = new EntryFormDTO();
         form.setType(type);
         model.addAttribute("form", form);
         model.addAttribute("participantCandidates", getParticipantCandidates());
@@ -40,7 +41,7 @@ public class EntryController {
 
 
     @PostMapping
-    public String createEntry(@Valid @ModelAttribute("form") CreateEntryForm form, BindingResult bindingResult,
+    public String createEntry(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult,
                               Principal principal) {
         if (bindingResult.hasErrors()) {
             return FORM_PATH;
@@ -49,6 +50,24 @@ public class EntryController {
             case EVENT -> entryLifeService.createEvent(form.toEventDTO(), principal.getName());
             case TASK -> entryLifeService.createTask(form.toTaskDTO(), principal.getName());
         };
+        return "redirect:/entries/" + id;
+    }
+
+    @GetMapping("/{id}/edit")
+    public String getEditForm(@RequestParam(required = false, defaultValue = "EVENT") EntryType type, Principal principal, @PathVariable Long id, Model model) {
+        EntryFormDTO form = entryLifeService.getEntryForEdit(id, principal.getName());
+        model.addAttribute("form", form);
+        model.addAttribute("participantCandidates", getParticipantCandidates());
+        return FORM_PATH;
+    }
+
+    @PostMapping("/{id}/edit")
+    public String updateEntry(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult, @PathVariable Long id, Principal principal) {
+        if (bindingResult.hasErrors()) { return FORM_PATH;}
+        switch (form.getType()) {
+            case EVENT -> entryLifeService.updateEntry(id, form.toEventDTO(), principal.getName());
+            case TASK -> entryLifeService.updateEntry(id, form.toTaskDTO(), principal.getName());
+        }
         return "redirect:/entries/" + id;
     }
 

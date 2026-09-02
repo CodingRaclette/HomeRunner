@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
-<head th:insert="~{fragments/layout :: head(title='Nouvelle entrée')}"></head>
+<head th:insert="~{fragments/layout :: head(title=${form.id != null} ? 'Modifier cette entrée' : 'Nouvelle entrée')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div class="container" style="max-width: 500px;">
-    <h1 class="mb-4">Nouvelle entrée (<span id="entry-type-label" th:text="${form.type}"></span>)</h1>
-    <form th:action="@{/entries}" th:object="${form}" method="post">
+    <h1 class="mb-4">
+        <span th:text="${form.id != null} ? 'Modifier cette entrée' : 'Nouvelle entrée'"></span>
+        (<span id="entry-type-label" th:text="${form.type}"></span>)
+    </h1>
+    <form th:action="${form.id != null} ? @{/entries/{id}/edit(id=${form.id})} : @{/entries}" th:object="${form}" method="post">
 
         <div class="mb-3">
             <label class="form-label d-block">Type</label>
@@ -41,39 +44,28 @@
             <textarea th:field="*{description}" class="form-control"></textarea>
             </label>
         </div>
-        <div class="mb-3 entry-field-event" th:classappend="${form.type.name() == 'EVENT'} ? '' : 'd-none'">
+        <div class="mb-3">
             <label class="form-label">Participants</label>
             <div class="position-relative">
                 <input type="text" id="participant-search" class="form-control"
-                       placeholder="Rechercher un participant..." autocomplete="on"/>
+                       placeholder="Rechercher un participant..." autocomplete="off"/>
                 <div id="participant-suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
             </div>
             <div id="participant-tags" class="d-flex flex-wrap gap-2 mt-2"></div>
             <!-- un <input type="hidden" name="participantIds"> est ajoute ici par person-picker.js
-                 pour chaque participant selectionne : c'est ce qui alimente form.participantIds -->
+                 pour chaque participant selectionne (Event ou Task, le champ est desormais commun)
+                 : c'est ce qui alimente form.participantIds -->
             <div id="participant-inputs"></div>
         </div>
 
-        <div class="mb-3 entry-field-task" th:classappend="${form.type.name() == 'TASK'} ? '' : 'd-none'">
-            <label class="form-label">Assignés</label>
-            <div class="position-relative">
-                <input type="text" id="assignee-search" class="form-control"
-                       placeholder="Rechercher un assigné..." autocomplete="off"/>
-                <div id="assignee-suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
-            </div>
-            <div id="assignee-tags" class="d-flex flex-wrap gap-2 mt-2"></div>
-            <!-- un <input type="hidden" name="assigneeIds"> est ajoute ici par person-picker.js
-                 pour chaque assigne selectionne : c'est ce qui alimente form.assigneeIds -->
-            <div id="assignee-inputs"></div>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Créer</button>
+        <button type="submit" class="btn btn-primary" th:text="${form.id != null} ? 'Enregistrer' : 'Créer'"></button>
     </form>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 <script th:inline="javascript">
     /*<![CDATA[*/
     var participantCandidates = /*[[${participantCandidates}]]*/ [];
+    var selectedParticipantIds = /*[[${form.participantIds}]]*/ [];
     /*]]>*/
 </script>
 <script th:src="@{/js/participant-picker.js}"></script>

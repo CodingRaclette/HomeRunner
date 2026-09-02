@@ -1,5 +1,6 @@
 package com.nyxeira.homerunner.entrymodel.model;
 
+import com.nyxeira.homerunner.entrylife.dto.EntryDTO;
 import com.nyxeira.homerunner.entrylife.dto.EventDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import jakarta.persistence.DiscriminatorValue;
@@ -48,4 +49,11 @@ public class Event extends Entry {
 
     public EntryType getType() { return EntryType.EVENT; }
 
+    public void applyData(EntryDTO dto) {
+        EventDTO event = (EventDTO)dto;
+        this.name = event.getName();
+        this.date = event.getDate();
+        this.description = event.getDescription();
+        this.endDate = event.getEndDate();
+    }
 }

@@ -2,12 +2,14 @@ package com.nyxeira.homerunner.entrylife.dto;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public abstract class EntryDTO {
 
     private String name;
     private LocalDateTime date;
     private String description;
+    private List<Long> participantIds;
 
     public String getName() {
         return name;
@@ -31,5 +33,13 @@ public abstract class EntryDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<Long> getParticipantIds() {
+        return participantIds;
+    }
+
+    public void setParticipantIds(List<Long> participantIds) {
+        this.participantIds = participantIds;
     }
 }
