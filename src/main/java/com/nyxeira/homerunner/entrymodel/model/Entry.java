@@ -1,6 +1,8 @@
 package com.nyxeira.homerunner.entrymodel.model;
 
+import com.nyxeira.homerunner.entrylife.dto.EntryDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
+import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import jakarta.persistence.*;
 
 import java.time.Instant;
