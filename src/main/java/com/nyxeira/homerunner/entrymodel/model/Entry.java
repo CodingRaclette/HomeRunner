@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import static jakarta.persistence.InheritanceType.SINGLE_TABLE;
