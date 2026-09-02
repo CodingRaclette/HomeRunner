@@ -1,9 +1,9 @@
-package com.nyxeira.homerunner.entrylife.ui;
+package com.nyxeira.homerunner.entries.ui;
 
-import com.nyxeira.homerunner.entrylife.dto.EntryFormDTO;
-import com.nyxeira.homerunner.entrylife.services.EntryLifeService;
-import com.nyxeira.homerunner.entrymodel.model.Entry;
-import com.nyxeira.homerunner.entrymodel.model.EntryType;
+import com.nyxeira.homerunner.entries.dto.EntryFormDTO;
+import com.nyxeira.homerunner.entries.services.EntryLifeService;
+import com.nyxeira.homerunner.entries.model.Entry;
+import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import jakarta.validation.Valid;

@@ -1,6 +1,6 @@
 package com.nyxeira.homerunner.calendarview.ui;
 
-import com.nyxeira.homerunner.entrymodel.repositories.EntryRepository;
+import com.nyxeira.homerunner.entries.repositories.EntryRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

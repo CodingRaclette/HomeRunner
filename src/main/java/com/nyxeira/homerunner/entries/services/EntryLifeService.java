@@ -1,15 +1,15 @@
-package com.nyxeira.homerunner.entrylife.services;
+package com.nyxeira.homerunner.entries.services;
 
-import com.nyxeira.homerunner.common.events.EntryCreatedEvent;
-import com.nyxeira.homerunner.common.events.EntryUpdatedEvent;
-import com.nyxeira.homerunner.entrylife.dto.EntryDTO;
-import com.nyxeira.homerunner.entrylife.dto.EventDTO;
-import com.nyxeira.homerunner.entrylife.dto.TaskDTO;
-import com.nyxeira.homerunner.entrylife.dto.EntryFormDTO;
-import com.nyxeira.homerunner.entrymodel.model.Entry;
-import com.nyxeira.homerunner.entrymodel.model.Event;
-import com.nyxeira.homerunner.entrymodel.model.Task;
-import com.nyxeira.homerunner.entrymodel.repositories.EntryRepository;
+import com.nyxeira.homerunner.entries.events.EntryCreatedEvent;
+import com.nyxeira.homerunner.entries.events.EntryUpdatedEvent;
+import com.nyxeira.homerunner.entries.dto.EntryDTO;
+import com.nyxeira.homerunner.entries.dto.EventDTO;
+import com.nyxeira.homerunner.entries.dto.TaskDTO;
+import com.nyxeira.homerunner.entries.dto.EntryFormDTO;
+import com.nyxeira.homerunner.entries.model.Entry;
+import com.nyxeira.homerunner.entries.model.Event;
+import com.nyxeira.homerunner.entries.model.Task;
+import com.nyxeira.homerunner.entries.repositories.EntryRepository;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 

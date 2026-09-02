@@ -1,4 +1,4 @@
-package com.nyxeira.homerunner.entrylife.dto;
+package com.nyxeira.homerunner.entries.dto;
 
 
 public class TaskDTO extends EntryDTO {

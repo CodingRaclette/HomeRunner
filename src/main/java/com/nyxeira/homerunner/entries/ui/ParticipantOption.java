@@ -1,4 +1,4 @@
-package com.nyxeira.homerunner.entrylife.ui;
+package com.nyxeira.homerunner.entries.ui;
 
 /**
  * Projection légère d'un User, utilisee uniquement pour alimenter le widget de recherche de

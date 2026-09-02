@@ -1,6 +1,7 @@
 package com.nyxeira.homerunner.entrymodel.model;
 
-import com.nyxeira.homerunner.entrymodel.repositories.EntryRepository;
+import com.nyxeira.homerunner.entries.model.*;
+import com.nyxeira.homerunner.entries.repositories.EntryRepository;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.nyxeira.homerunner.common.events;
+package com.nyxeira.homerunner.entries.events;
 
 import java.util.List;
 

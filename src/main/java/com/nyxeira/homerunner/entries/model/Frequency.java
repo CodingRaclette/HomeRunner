@@ -1,4 +1,4 @@
-package com.nyxeira.homerunner.entrymodel.model;
+package com.nyxeira.homerunner.entries.model;
 
 public enum Frequency {
     DAILY,

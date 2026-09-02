@@ -1,8 +1,8 @@
-package com.nyxeira.homerunner.entrylife.dto;
+package com.nyxeira.homerunner.entries.dto;
 
-import com.nyxeira.homerunner.entrymodel.model.Entry;
-import com.nyxeira.homerunner.entrymodel.model.EntryType;
-import com.nyxeira.homerunner.entrymodel.model.Event;
+import com.nyxeira.homerunner.entries.model.Entry;
+import com.nyxeira.homerunner.entries.model.EntryType;
+import com.nyxeira.homerunner.entries.model.Event;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
