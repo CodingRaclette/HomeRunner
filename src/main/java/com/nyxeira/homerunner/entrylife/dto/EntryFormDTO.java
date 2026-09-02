@@ -47,6 +47,20 @@ public class CreateEntryForm {
         return d;
     }
 
+    public EntryFormDTO fromEntry(Entry e) {
+        EntryFormDTO form = new EntryFormDTO();
+        form.setType(e.getType());
+        form.setName(e.getName());
+        form.setDate(e.getDate());
+        form.setDescription(e.getDescription());
+        form.setParticipantIds(e.getParticipantIds());
+        if (e.getType().equals(EntryType.EVENT)) {
+            Event event = (Event)e;
+            form.setEndDate(event.getEndDate());
+        }
+        return form;
+    }
+
     public EntryType getType() {
         return type;
     }
