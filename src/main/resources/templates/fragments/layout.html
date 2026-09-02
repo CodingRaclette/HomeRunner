@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <th:block th:fragment="head(title)">
         <meta charset="UTF-8"/>
@@ -13,9 +13,14 @@
     <div class="container-fluid">
         <a class="navbar-brand" th:href="@{/}">HomeRunner</a>
         <div class="navbar-nav">
-            <a class="nav-link" th:href="@{/admin/users}">Utilisateurs</a>
-            <a class="nav-link" th:href="@{/account/change-password}">Mon compte</a>
-            <a class="nav-link" th:href="@{/logout}">Deconnexion</a>
+            <a class="nav-link" th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')">Utilisateurs</a>
+            <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" sec:authentication="principal.user.name"></a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" th:href="@{/account/change-password}">Changer de mot de passe</a></li>
+                    <li><a class="dropdown-item" th:href="@{/logout}">Déconnexion</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 </nav>
