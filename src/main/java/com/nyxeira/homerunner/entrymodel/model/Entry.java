@@ -51,6 +51,11 @@ public abstract class Entry {
     // Je l'ajoute à ce niveau pour l'instant, mais cela pourrait poser question lors de l'ajout de nouvelles entrées
     // qui n'auraient pas de participants
     public abstract Set<User> getParticipants();
+    public abstract void setParticipants(Set<User> participants);
+
+    public List<Long> getParticipantIds() {
+        return getParticipants().stream().map(User::getId).toList();
+    }
 
     public boolean isEditableBy(User user) {
         return user.equals(creator);
