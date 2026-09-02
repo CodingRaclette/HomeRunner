@@ -50,4 +50,15 @@ public abstract class Entry {
     // qui n'auraient pas de participants
     public abstract Set<User> getParticipants();
 
+    public boolean isEditableBy(User user) {
+        return user.equals(creator);
+    }
+
+    public boolean isDeletableBy(User user) {
+        return user.equals(creator) || user.getRole() == UserRole.ADMIN;
+    }
+
+    public abstract void applyData(EntryDTO dto);
+
+
 }
