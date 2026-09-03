@@ -5,6 +5,7 @@
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div class="container">
     <h1 class="mb-4">Calendrier</h1>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
     <p>
         <a th:href="@{/entries/new(type='EVENT')}" class="btn btn-primary">Nouvel évènement</a>
         <a th:href="@{/entries/new(type='TASK')}" class="btn btn-outline-primary">Nouvelle tâche</a>

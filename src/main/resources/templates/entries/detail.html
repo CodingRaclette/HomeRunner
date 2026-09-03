@@ -30,8 +30,31 @@
         </ul>
     </div>
 
-    <a th:href="@{/entries/{id}/edit(id=${entry.id})}" class="btn btn-primary mt-3">Modifier</a>
+
     <a href="/" class="btn btn-secondary mt-3">Retour à la liste</a>
+    <a th:href="@{/entries/{id}/edit(id=${entry.id})}" class="btn btn-primary mt-3">Modifier</a>
+    <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#deleteModal">Supprimer</button>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    Supprimer <strong th:text="${entry.name}"></strong> ? Cette action est irréversible.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form th:action="@{/entries/{id}/delete(id=${entry.id})}" method="post">
+                        <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>

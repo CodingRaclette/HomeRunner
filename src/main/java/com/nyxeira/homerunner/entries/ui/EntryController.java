@@ -7,10 +7,12 @@ import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import jakarta.validation.Valid;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
@@ -54,20 +56,27 @@ public class EntryController {
     }
 
     @GetMapping("/{id}/edit")
-    public String getEditForm(@RequestParam(required = false, defaultValue = "EVENT") EntryType type, Principal principal, @PathVariable Long id, Model model) {
-        EntryFormDTO form = entryLifeService.getEntryForEdit(id, principal.getName());
-        model.addAttribute("form", form);
-        model.addAttribute("participantCandidates", getParticipantCandidates());
-        return FORM_PATH;
+    public String getEditForm(@RequestParam(required = false, defaultValue = "EVENT") EntryType type, Principal principal, @PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            EntryFormDTO form = entryLifeService.getEntryForEdit(id, principal.getName());
+            model.addAttribute("form", form);
+            model.addAttribute("participantCandidates", getParticipantCandidates());
+            return FORM_PATH;
+        } catch (AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas modifier cette entrée.");
+            return "redirect:/entries/" + id;
+        }
+
     }
 
     @PostMapping("/{id}/edit")
-    public String updateEntry(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult, @PathVariable Long id, Principal principal) {
+    public String updateEntry(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult, @PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) { return FORM_PATH;}
         switch (form.getType()) {
             case EVENT -> entryLifeService.updateEntry(id, form.toEventDTO(), principal.getName());
             case TASK -> entryLifeService.updateEntry(id, form.toTaskDTO(), principal.getName());
         }
+
         return "redirect:/entries/" + id;
     }
 
@@ -76,6 +85,19 @@ public class EntryController {
         Entry entry = entryLifeService.findById(id);
         model.addAttribute("entry", entry);
         return "entries/detail";
+    }
+
+
+    @PostMapping("/{id}/delete")
+    public String deleteEntry(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
+        try {
+            entryLifeService.deleteEntry(id, principal.getName());
+        } catch (AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas supprimer cette entrée.");
+            return "redirect:/entries/" + id;
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "L'entrée " + id + " a bien été supprimée");
+        return "redirect:/";
     }
 
     // Le compte ADMIN est réservé a l'administration du systeme : il ne doit jamais pouvoir apparaitre comme participant d'un evenement.

@@ -1,6 +1,7 @@
 package com.nyxeira.homerunner.entries.services;
 
 import com.nyxeira.homerunner.entries.events.EntryCreatedEvent;
+import com.nyxeira.homerunner.entries.events.EntryDeletedEvent;
 import com.nyxeira.homerunner.entries.events.EntryUpdatedEvent;
 import com.nyxeira.homerunner.entries.dto.EntryDTO;
 import com.nyxeira.homerunner.entries.dto.EventDTO;
@@ -84,5 +85,15 @@ public class EntryLifeService {
             List<Long> newParticipants = entry.getParticipantIds();
             publisher.publishEvent(new EntryUpdatedEvent(entryId, oldParticipants, newParticipants, actorLogin));
         }
+    }
+
+    @Transactional
+    public void deleteEntry(Long entryId, String actorLogin) throws AccessDeniedException {
+        Entry entry = entryRepository.findById(entryId).orElseThrow();
+        User user = userRepository.findByLogin(actorLogin).orElseThrow();
+        if (entry.isDeletableBy(user)) {
+            publisher.publishEvent(new EntryDeletedEvent(entryId, actorLogin));
+            entryRepository.delete(entry);
+        } else { throw new AccessDeniedException("User can't delete this entry"); }
     }
 }
