@@ -28,6 +28,12 @@
         <ul class="list-group">
             <li class="list-group-item" th:each="c : ${entry.contributors}" th:text="${c.name}"></li>
         </ul>
+        <form th:if="${!currentUserAssigned}" th:action="@{/entries/{id}/self-assign(id=${entry.id})}" method="post">
+            <button type="submit" class="btn btn-outline-primary mb-3">S'assigner</button>
+        </form>
+        <form th:if="${currentUserAssigned}" th:action="@{/entries/{id}/self-unassign(id=${entry.id})}" method="post">
+            <button type="submit" class="btn btn-outline-secondary mb-3">Se désassigner</button>
+        </form>
     </div>
 
 

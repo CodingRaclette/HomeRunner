@@ -4,6 +4,7 @@ import com.nyxeira.homerunner.entries.dto.EntryFormDTO;
 import com.nyxeira.homerunner.entries.services.EntryLifeService;
 import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.EntryType;
+import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import jakarta.validation.Valid;
@@ -44,8 +45,11 @@ public class EntryController {
 
     @PostMapping
     public String createEntry(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult,
-                              Principal principal) {
+                              Principal principal, Model model) {
         if (bindingResult.hasErrors()) {
+            // sans ca, participant-picker.js ne retrouve plus aucun candidat pour reconstruire les tags
+            // et les champs caches deja selectionnes : la liste des participants semble effacee.
+            model.addAttribute("participantCandidates", getParticipantCandidates());
             return FORM_PATH;
         }
         Long id = switch (form.getType()) {
@@ -70,8 +74,13 @@ public class EntryController {
     }
 
     @PostMapping("/{id}/edit")
-    public String updateEntry(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult, @PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) { return FORM_PATH;}
+    public String updateEntry(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult, @PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes, Model model) {
+        if (bindingResult.hasErrors()) {
+            // meme correctif que createEntry : sans participantCandidates ici, le picker perd la
+            // selection deja faite au moment de reafficher le formulaire avec les erreurs.
+            model.addAttribute("participantCandidates", getParticipantCandidates());
+            return FORM_PATH;
+        }
         switch (form.getType()) {
             case EVENT -> entryLifeService.updateEntry(id, form.toEventDTO(), principal.getName());
             case TASK -> entryLifeService.updateEntry(id, form.toTaskDTO(), principal.getName());
@@ -81,9 +90,13 @@ public class EntryController {
     }
 
     @GetMapping("/{id}")
-    public String getEntry(@PathVariable Long id, Model model) {
+    public String getEntry(@PathVariable Long id, Model model, Principal principal) {
         Entry entry = entryLifeService.findById(id);
         model.addAttribute("entry", entry);
+        // Utilise par le bloc TASK de entries/detail.html pour savoir s'il faut proposer
+        // "S'assigner" ou "Se désassigner" a l'utilisateur courant.
+        User currentUser = userRepository.findByLogin(principal.getName()).orElseThrow();
+        model.addAttribute("currentUserAssigned", entry.getParticipants().contains(currentUser));
         return "entries/detail";
     }
 
