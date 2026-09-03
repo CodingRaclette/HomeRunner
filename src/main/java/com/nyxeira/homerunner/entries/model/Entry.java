@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +37,10 @@ public abstract class Entry {
     @ManyToOne
     User creator;
 
+    @JoinTable(name = "entry_participants")
+    @ManyToMany
+    Set<User> participants = new HashSet<>();
+
     @Embedded
     RecurrenceRule recurrence;
 
@@ -49,10 +54,11 @@ public abstract class Entry {
 
     public abstract EntryType getType();
 
-    // Je l'ajoute à ce niveau pour l'instant, mais cela pourrait poser question lors de l'ajout de nouvelles entrées
-    // qui n'auraient pas de participants
-    public abstract Set<User> getParticipants();
-    public abstract void setParticipants(Set<User> participants);
+
+    public Set<User> getParticipants() {return participants;}
+    public void setParticipants(Set<User> participants) {
+        this.participants = participants;
+    }
 
     public List<Long> getParticipantIds() {
         return getParticipants().stream().map(User::getId).toList();

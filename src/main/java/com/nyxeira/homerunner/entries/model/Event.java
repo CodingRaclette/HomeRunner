@@ -16,20 +16,12 @@ import java.util.Set;
 /**
  * Cette entité définit un évènement de calendrier. L'évènement se distingue par le fait qu'il :
  *  - se déroule sur une plagetemporelle dont la fin est définie par endDate,
- *  - peut être associé à des utilisateurs participants.
- *  Je me questionne toujours sur la ressemblance entre "participants" et "assignees" de Task, mais il me semble pour
- *  l'instant judicieux de les garder séparés, dans le cas où des comportements particuliers pourraient s'appliquer.
- *  A voir dans la suite du développement.
  */
 @DiscriminatorValue("EVENT")
 @Entity
 public class Event extends Entry {
 
     LocalDateTime endDate;
-
-    @JoinTable(name = "event_participants")
-    @ManyToMany
-    Set<User> participants = new HashSet<>();
 
     public Event() {}
 
@@ -43,9 +35,6 @@ public class Event extends Entry {
 
     public LocalDateTime getEndDate() { return endDate; }
     public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
-
-    public Set<User> getParticipants() { return participants; }
-    public void setParticipants(Set<User> participants) { this.participants = participants; }
 
     public EntryType getType() { return EntryType.EVENT; }
 

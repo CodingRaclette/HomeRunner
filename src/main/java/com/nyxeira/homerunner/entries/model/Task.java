@@ -19,18 +19,13 @@ import java.util.Set;
  *  - possède un statut de validation, définit par la présence d'au moins un contributeur OU l'attribut validatedByOther ;
  *  - est associée à une liste de users assignés à la tâche (et qui peuvent donc la valider) ;
  *  - est associée à une liste de contributeurs, qui indique les users qui ont effectivement participé à l'accomplissement de la tâche.
- *  Je me questionne toujours sur la ressemblance entre "participants" de Event et "assignees", mais il me semble pour
- *  l'instant judicieux de les garder séparés, dans le cas où des comportements particuliers pourraient s'appliquer.
- *  A voir dans la suite du développement.
  */
 @DiscriminatorValue("TASK")
 @Entity
 public class Task extends Entry implements Trackable {
 
     boolean validatedByOther;
-    @ManyToMany
-    @JoinTable(name="task_assignees")
-    private Set<User> assignees = new HashSet<>();
+
     @ManyToMany
     @JoinTable(name="task_contributors")
     private final Set<User> contributors = new HashSet<>();
@@ -49,13 +44,7 @@ public class Task extends Entry implements Trackable {
     @Override
     public void setValidatedByOther(boolean b) { this.validatedByOther = b; }
 
-    @Override
-    public Set<User> getParticipants() { return assignees; }
 
-    @Override
-    public void setParticipants(Set<User> participants) {
-        this.assignees = participants;
-    }
 
     @Override
     public void applyData(EntryDTO dto) {
