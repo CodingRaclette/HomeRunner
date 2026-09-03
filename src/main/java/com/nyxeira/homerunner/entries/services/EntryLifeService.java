@@ -84,7 +84,7 @@ public class EntryLifeService {
             entry.setParticipants(resolveUsers(d.getParticipantIds()));
             List<Long> newParticipants = entry.getParticipantIds();
             publisher.publishEvent(new EntryUpdatedEvent(entryId, oldParticipants, newParticipants, actorLogin));
-        }
+        } else { throw new AccessDeniedException("User can't edit this entry"); }
     }
 
     @Transactional
