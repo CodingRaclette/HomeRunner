@@ -60,4 +60,10 @@ public class UserManagementService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public void resetPassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setMustChangePassword(true);
+    }
 }
