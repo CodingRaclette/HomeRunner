@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -37,6 +38,14 @@ public class EntryController {
     public String getCreateForm(@RequestParam(required = false, defaultValue = "EVENT") EntryType type, Model model) {
         EntryFormDTO form = new EntryFormDTO();
         form.setType(type);
+
+        // Définition de la date par défaut à la date actuelle, et h+1 pour la date de fin si event
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        form.setDate(now);
+        if (type == EntryType.EVENT) {
+            form.setEndDate(now.plusHours(1));
+        }
+
         model.addAttribute("form", form);
         model.addAttribute("participantCandidates", getParticipantCandidates());
         return FORM_PATH;

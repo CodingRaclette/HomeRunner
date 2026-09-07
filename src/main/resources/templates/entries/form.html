@@ -27,17 +27,26 @@
             </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
         </div>
-        <div class="mb-3">
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="all-day-toggle"/>
+            <label class="form-check-label" for="all-day-toggle">Toute la journée</label>
+        </div>
+        <div class="mb-3 entry-field-datetime">
             <label class="form-label">Date
             <input type="datetime-local" th:field="*{date}" class="form-control"/>
             </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
         </div>
-        <div class="mb-3 entry-field-event" th:classappend="${form.type.name() == 'EVENT'} ? '' : 'd-none'">
+        <div class="mb-3 entry-field-event entry-field-datetime" th:classappend="${form.type.name() == 'EVENT'} ? '' : 'd-none'">
             <label class="form-label">Date de fin
             <input type="datetime-local" th:field="*{endDate}" class="form-control"/>
             </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('endDateValid')}" th:errors="*{endDateValid}"></div>
+        </div>
+        <div class="mb-3 entry-field-allday d-none">
+            <label class="form-label">Date
+            <input type="date" id="all-day-date" class="form-control"/>
+            </label>
         </div>
         <div class="mb-3">
             <label class="form-label">Description
