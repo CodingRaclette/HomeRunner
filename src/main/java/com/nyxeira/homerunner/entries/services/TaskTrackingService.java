@@ -1,7 +1,8 @@
 package com.nyxeira.homerunner.entries.services;
 
-import com.nyxeira.homerunner.entries.events.SelfAssignEvent;
-import com.nyxeira.homerunner.entries.events.SelfUnassignEvent;
+import com.nyxeira.homerunner.entries.events.*;
+import com.nyxeira.homerunner.entries.exceptions.UserNotAllowedException;
+import com.nyxeira.homerunner.entries.exceptions.UserNotParticipantException;
 import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.Task;
 import com.nyxeira.homerunner.entries.repositories.EntryRepository;
@@ -36,7 +37,7 @@ public class TaskTrackingService {
         return task;
     }
 
-    // Ouvert a tout membre authentifie, aucun controle de droit (cf. conception 6.5.1).
+    // Ouvert a tout membre authentifie
     @Transactional
     public void selfAssign(Long taskId, String actorLogin) {
         Task task = getTask(taskId);
@@ -52,5 +53,41 @@ public class TaskTrackingService {
         User user = userRepository.findByLogin(actorLogin).orElseThrow();
         task.getParticipants().remove(user);
         publisher.publishEvent(new SelfUnassignEvent(taskId, actorLogin));
+    }
+
+
+    @Transactional
+    public void toggleContributor(Long taskId, Long targetUserId, String actorLogin) {
+        Task task = getTask(taskId);
+        User user = userRepository.findByLogin(actorLogin).orElseThrow();
+        User targetUser = userRepository.findById(targetUserId).orElseThrow();
+
+        if (!user.equals(targetUser) && !user.equals(task.getCreator())) {
+            throw new UserNotAllowedException();
+        }
+
+        // L'utilisateur visé doit être un participant
+        if (!task.getParticipants().contains(targetUser)) { throw new UserNotParticipantException(); }
+
+        if (task.getContributors().contains(targetUser)) {
+            // Cas ou l'utilsateur est déjà contributeur, on le retire des contributeur
+            task.removeContributor(targetUser);
+            publisher.publishEvent(new ContributionRemovedEvent(taskId, targetUser.getLogin(), actorLogin));
+        } else {
+            // Sinon on l'y ajoute
+            task.addContributor(targetUser);
+            publisher.publishEvent(new ContributionAddedEvent(taskId, targetUser.getLogin(), actorLogin));
+        }
+    }
+
+    @Transactional
+    public void toggleValidatedByOther(Long taskId, String actorLogin) {
+        Task task = getTask(taskId);
+        User user = userRepository.findByLogin(actorLogin).orElseThrow();
+
+        if (task.isEditableBy(user)) {
+            task.setValidatedByOther(!task.isValidatedByOther());
+            publisher.publishEvent(new TaskValidatedByOtherEvent(taskId, task.isValidatedByOther(), actorLogin));
+        } else { throw new UserNotAllowedException(); }
     }
 }
