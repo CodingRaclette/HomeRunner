@@ -4,6 +4,7 @@ import com.nyxeira.homerunner.entries.dto.EntryFormDTO;
 import com.nyxeira.homerunner.entries.services.EntryLifeService;
 import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.EntryType;
+import com.nyxeira.homerunner.entries.ui.tools.ParticipantOption;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
