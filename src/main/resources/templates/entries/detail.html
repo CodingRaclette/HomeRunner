@@ -19,14 +19,26 @@
     </div>
 
     <div th:if="${entry.type.name() == 'TASK'}">
-        <p>Terminée : <span th:text="${entry.done}"></span></p>
-        <p>Assignés :</p>
-        <ul class="list-group">
-            <li class="list-group-item" th:each="a : ${entry.participants}" th:text="${a.name}"></li>
-        </ul>
-        <p>Contributeur(s) :</p>
-        <ul class="list-group">
-            <li class="list-group-item" th:each="c : ${entry.contributors}" th:text="${c.name}"></li>
+        <p>Terminée : <span th:text="${entry.done}"></span><span class="badge text-bg-info ms-2" th:if="${entry.validatedByOther}">Validée manuellement</span></p>
+        <form th:if="${entry.creator.login == #authentication.name}"
+              th:action="@{/entries/{id}/toggle-validated-by-other(id=${entry.id})}" method="post" class="mb-3">
+            <button type="submit" th:class="${entry.validatedByOther} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-info'"
+                    th:text="${entry.validatedByOther} ? 'Retirer la validation manuelle' : 'Valider manuellement'"></button>
+        </form>
+        <p>Participants :</p>
+        <ul class="list-group mb-3">
+            <li class="list-group-item d-flex justify-content-between align-items-center" th:each="u : ${entry.participants}">
+                <span>
+                    <span th:text="${u.name}"></span>
+                    <span class="badge text-bg-success ms-2" th:if="${entry.contributors.contains(u)}">A contribué</span>
+                </span>
+                <form th:if="${entry.creator.login == #authentication.name or u.login == #authentication.name}"
+                      th:action="@{/entries/{id}/toggle-contrib(id=${entry.id})}" method="post" class="m-0">
+                    <input type="hidden" name="targetUserId" th:value="${u.id}"/>
+                    <button type="submit" th:class="${entry.contributors.contains(u)} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'"
+                            th:text="${entry.contributors.contains(u)} ? 'Retirer la contribution' : 'Marquer comme contribué'"></button>
+                </form>
+            </li>
         </ul>
         <form th:if="${!currentUserAssigned}" th:action="@{/entries/{id}/self-assign(id=${entry.id})}" method="post">
             <button type="submit" class="btn btn-outline-primary mb-3">S'assigner</button>
@@ -61,6 +73,7 @@
         </div>
     </div>
     <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-warning" th:if="${message}" th:text="${message}"></div>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
