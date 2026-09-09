@@ -158,12 +158,7 @@ class EntryLifeServiceTest {
     }
 
     @Test
-    void updateEntryNeFaitRienNiNePublieDEvenementSiLUtilisateurNEstPasLeCreateur() {
-        // Comportement ACTUEL, documente plutot que cautionne : contrairement a deleteEntry,
-        // updateEntry ne leve pas d'AccessDeniedException quand isEditableBy() est faux -
-        // elle ignore silencieusement la demande (pas d'exception, pas d'evenement, entree
-        // inchangee). C'est le meme bug que celui deja corrige sur deleteEntry, pas encore
-        // corrige ici ni cote EntryController.
+    void updateEntryThrowSiUserNonAutorise() {
         User creator = UserTestBuilder.aUser().withLogin("alice").build();
         User autre = UserTestBuilder.aUser().withLogin("bob").build();
         EventDTO initial = new EventDTO();
