@@ -1,8 +1,8 @@
 package com.nyxeira.homerunner.entries.ui;
 
-import com.nyxeira.homerunner.entries.exceptions.UserNotAllowedException;
 import com.nyxeira.homerunner.entries.exceptions.UserNotParticipantException;
 import com.nyxeira.homerunner.entries.services.TaskTrackingService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,7 +40,7 @@ public class TaskTrackingController {
         } catch (UserNotParticipantException e) {
             redirectAttributes.addFlashAttribute("message", "L'utilisateur ne participe pas à cette tâche");
             return "redirect:/entries/" + id;
-        } catch (UserNotAllowedException e) {
+        } catch (AccessDeniedException e) {
             redirectAttributes.addFlashAttribute("message", "L'utilisateur n'est pas autorisé à réaliser cette action");
             return "redirect:/entries/" + id;
         }
@@ -51,7 +51,7 @@ public class TaskTrackingController {
     public String toggleValidatedByOther(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
         try {
             taskTrackingService.toggleValidatedByOther(id, principal.getName());
-        } catch (UserNotAllowedException e) {
+        } catch (AccessDeniedException e) {
             redirectAttributes.addFlashAttribute("message", "L'utilisateur ne peut pas faire cette action");
             return "redirect:/entries/" + id;
         }

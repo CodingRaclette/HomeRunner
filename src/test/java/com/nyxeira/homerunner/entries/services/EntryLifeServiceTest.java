@@ -175,7 +175,8 @@ class EntryLifeServiceTest {
         EventDTO update = new EventDTO();
         update.setName("Autre nom");
 
-        service().updateEntry(5L, update, "bob");
+        assertThatThrownBy(() -> service().updateEntry(5L, update, "bob"))
+                .isInstanceOf(AccessDeniedException.class);
 
         assertThat(event.getName()).isEqualTo("Repas");
         verifyNoInteractions(publisher);

@@ -1,7 +1,6 @@
 package com.nyxeira.homerunner.entries.services;
 
 import com.nyxeira.homerunner.entries.events.*;
-import com.nyxeira.homerunner.entries.exceptions.UserNotAllowedException;
 import com.nyxeira.homerunner.entries.exceptions.UserNotParticipantException;
 import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.Task;
@@ -10,6 +9,7 @@ import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +63,7 @@ public class TaskTrackingService {
         User targetUser = userRepository.findById(targetUserId).orElseThrow();
 
         if (!user.equals(targetUser) && !user.equals(task.getCreator())) {
-            throw new UserNotAllowedException();
+            throw new AccessDeniedException("User can't edit this participant");
         }
 
         // L'utilisateur visé doit être un participant
@@ -88,6 +88,6 @@ public class TaskTrackingService {
         if (task.isEditableBy(user)) {
             task.setValidatedByOther(!task.isValidatedByOther());
             publisher.publishEvent(new TaskValidatedByOtherEvent(taskId, task.isValidatedByOther(), actorLogin));
-        } else { throw new UserNotAllowedException(); }
+        } else { throw new AccessDeniedException("User can't set this task done"); }
     }
 }
