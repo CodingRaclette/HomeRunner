@@ -4,6 +4,7 @@ import com.nyxeira.homerunner.entries.dto.EntryDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import static jakarta.persistence.InheritanceType.SINGLE_TABLE;
  */
 @Inheritance(strategy = SINGLE_TABLE)
 @DiscriminatorColumn(name = "entry_type")
+@SQLRestriction("deleted_at is null")
 @Entity
 public abstract class Entry {
 
@@ -48,7 +50,13 @@ public abstract class Entry {
     public String getName() { return name; }
     public LocalDateTime getDate() { return date; }
     public String getDescription() { return description; }
+
+
     public Instant getDeletedAt() { return deletedAt; }
+    public void softDelete() {
+        this.deletedAt = Instant.now();
+    }
+
     public User getCreator() { return creator; }
     public RecurrenceRule getRecurrence() { return recurrence; }
 
@@ -73,6 +81,7 @@ public abstract class Entry {
     }
 
     public abstract void applyData(EntryDTO dto);
+
 
 
 }

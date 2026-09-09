@@ -92,8 +92,8 @@ public class EntryLifeService {
         Entry entry = entryRepository.findById(entryId).orElseThrow();
         User user = userRepository.findByLogin(actorLogin).orElseThrow();
         if (entry.isDeletableBy(user)) {
+            entry.softDelete();
             publisher.publishEvent(new EntryDeletedEvent(entryId, actorLogin));
-            entryRepository.delete(entry);
         } else { throw new AccessDeniedException("User can't delete this entry"); }
     }
 }

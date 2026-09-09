@@ -178,7 +178,7 @@ class EntryLifeServiceTest {
     }
 
     @Test
-    void deleteEntrySupprimeEtPublieEntryDeletedEventQuandLeCreateurSupprime() {
+    void deleteEntryMarqueLEntreeSupprimeeSansSuppressionPhysiqueEtPublieEntryDeletedEventQuandLeCreateurSupprime() {
         User creator = UserTestBuilder.aUser().withLogin("alice").build();
         Event event = new Event(new EventDTO(), creator);
         when(entryRepository.findById(5L)).thenReturn(Optional.of(event));
@@ -186,7 +186,10 @@ class EntryLifeServiceTest {
 
         service().deleteEntry(5L, "alice");
 
-        verify(entryRepository).delete(event);
+        // Suppression logique : deletedAt est pose, mais l'entite n'est jamais physiquement
+        // supprimee (le filtre @SQLRestriction sur Entry se charge de l'exclure des requetes).
+        assertThat(event.getDeletedAt()).isNotNull();
+        verify(entryRepository, never()).delete(any());
         ArgumentCaptor<EntryDeletedEvent> captor = ArgumentCaptor.forClass(EntryDeletedEvent.class);
         verify(publisher).publishEvent(captor.capture());
         assertThat(captor.getValue().actorLogin()).isEqualTo("alice");
@@ -202,7 +205,8 @@ class EntryLifeServiceTest {
 
         service().deleteEntry(5L, "admin");
 
-        verify(entryRepository).delete(event);
+        assertThat(event.getDeletedAt()).isNotNull();
+        verify(entryRepository, never()).delete(any());
     }
 
     @Test
@@ -216,6 +220,7 @@ class EntryLifeServiceTest {
         assertThatThrownBy(() -> service().deleteEntry(5L, "bob"))
                 .isInstanceOf(AccessDeniedException.class);
 
+        assertThat(event.getDeletedAt()).isNull();
         verify(entryRepository, never()).delete(any());
         verifyNoInteractions(publisher);
     }
