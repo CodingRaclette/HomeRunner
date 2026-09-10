@@ -53,6 +53,33 @@
             <textarea th:field="*{description}" class="form-control"></textarea>
             </label>
         </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="recurrence-toggle" th:checked="${form.frequency != null}"/>
+            <label class="form-check-label" for="recurrence-toggle">Récurrent</label>
+        </div>
+        <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
+            <label class="form-label">Fréquence
+            <select th:field="*{frequency}" class="form-select">
+                <option value="">—</option>
+                <option value="DAILY">Quotidienne</option>
+                <option value="WEEKLY">Hebdomadaire</option>
+                <option value="MONTHLY">Mensuelle</option>
+                <option value="YEARLY">Annuelle</option>
+            </select>
+            </label>
+        </div>
+        <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
+            <label class="form-label">Tous les
+            <input type="number" th:field="*{interval}" min="1" class="form-control" style="max-width: 100px; display:inline-block;"/>
+            </label>
+            <span class="text-muted">(en unités de la fréquence choisie)</span>
+        </div>
+        <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
+            <label class="form-label">Jusqu'au (optionnel)
+            <input type="date" th:field="*{until}" class="form-control"/>
+            </label>
+        </div>
         <div class="mb-3">
             <label class="form-label">Participants</label>
             <div class="position-relative">
@@ -79,5 +106,6 @@
 </script>
 <script th:src="@{/js/participant-picker.js}"></script>
 <script th:src="@{/js/entry-type-toggle.js}"></script>
+<script th:src="@{/js/recurrence-toggle.js}"></script>
 </body>
 </html>

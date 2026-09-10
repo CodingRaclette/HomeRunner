@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:insert="~{fragments/layout :: head(title='Calendrier')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Calendrier</h1>
+        <div>
+            <a th:href="@{/entries/new(type='EVENT')}" class="btn btn-primary btn-sm">Nouvel évènement</a>
+            <a th:href="@{/entries/new(type='TASK')}" class="btn btn-outline-primary btn-sm">Nouvelle tâche</a>
+        </div>
+    </div>
+    <div id="calendar"></div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:src="@{/webjars/fullcalendar/6.1.11/index.global.min.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var calendarApiUrl = /*[[@{/api/calendar}]]*/ '/api/calendar';
+    /*]]>*/
+
+    // Une entree "toute la journee" est stockee cote backend comme un span 00:00 -> 23:59
+    // le meme jour (cf. entry-field-allday / all-day-toggle dans le formulaire), et non comme
+    // un flag explicite. On la detecte ici a partir des chaines ISO recues, pour la faire
+    // apparaitre dans la bandeau "toute la journee" de FullCalendar plutot que comme un bloc
+    // horaire classique.
+    function isAllDaySpan(startStr, endStr) {
+        if (!startStr || !endStr) {
+            return false;
+        }
+        return /T00:00(:00)?$/.test(startStr)
+            && /T23:59(:00)?$/.test(endStr)
+            && startStr.slice(0, 10) === endStr.slice(0, 10);
+    }
+
+    // FullCalendar traite "end" comme exclusif pour un event all-day : pour couvrir une seule
+    // journee, il faut donc pointer sur le lendemain (a minuit).
+    function nextDay(dateStr) {
+        var d = new Date(dateStr + 'T00:00:00');
+        d.setDate(d.getDate() + 1);
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+
+    function mapToFullCalendarEvent(item) {
+        var color = item.type === 'TASK'
+            ? (item.done ? '#6c757d' : '#0d6efd')
+            : '#198754';
+        var allDay = isAllDaySpan(item.startDate, item.endDate);
+        return {
+            id: item.entryId + '-' + item.occurrenceDate,
+            title: item.title,
+            start: item.startDate,
+            end: allDay ? nextDay(item.startDate.slice(0, 10)) : item.endDate,
+            allDay: allDay,
+            url: '/entries/' + item.entryId,
+            backgroundColor: color,
+            borderColor: color
+        };
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'fr',
+            firstDay: 1,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            events: function (fetchInfo, successCallback, failureCallback) {
+                // startStr/endStr sont deja au format YYYY-MM-DD : on evite toISOString()
+                // qui decalerait les dates selon le fuseau du navigateur.
+                fetch(calendarApiUrl + '?start=' + fetchInfo.startStr.slice(0, 10) + '&end=' + fetchInfo.endStr.slice(0, 10))
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('Erreur ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(function (items) {
+                        successCallback(items.map(mapToFullCalendarEvent));
+                    })
+                    .catch(failureCallback);
+            }
+        });
+        calendar.render();
+    });
+</script>
+</body>
+</html>

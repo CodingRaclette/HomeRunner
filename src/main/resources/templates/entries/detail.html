@@ -3,55 +3,121 @@
 <head th:insert="~{fragments/layout :: head(title=${entry.name})}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<div class="container">
-    <h1 th:text="${entry.name}"></h1>
-    <p>Type : <span class="badge text-bg-secondary" th:text="${entry.type}"></span></p>
-    <p>Date : <span th:text="${entry.date}"></span></p>
-    <p th:if="${entry.description}">Description : <span th:text="${entry.description}"></span></p>
-    <p>Créateur : <span th:text="|${entry.creator.name} (${entry.creator.login})|"></span></p>
+<div class="container" style="max-width: 700px;">
 
-    <div th:if="${entry.type.name() == 'EVENT'}">
-        <p>Fin : <span th:text="${entry.endDate}"></span></p>
-        <p>Participants :</p>
-        <ul class="list-group">
-            <li class="list-group-item" th:each="u : ${entry.participants}" th:text="${u.name}"></li>
-        </ul>
-    </div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-warning" th:if="${message}" th:text="${message}"></div>
 
-    <div th:if="${entry.type.name() == 'TASK'}">
-        <p>Terminée : <span th:text="${entry.done}"></span><span class="badge text-bg-info ms-2" th:if="${entry.validatedByOther}">Validée manuellement</span></p>
-        <form th:if="${entry.creator.login == #authentication.name}"
-              th:action="@{/entries/{id}/toggle-validated-by-other(id=${entry.id})}" method="post" class="mb-3">
-            <button type="submit" th:class="${entry.validatedByOther} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-info'"
-                    th:text="${entry.validatedByOther} ? 'Retirer la validation manuelle' : 'Valider manuellement'"></button>
-        </form>
-        <p>Participants :</p>
-        <ul class="list-group mb-3">
-            <li class="list-group-item d-flex justify-content-between align-items-center" th:each="u : ${entry.participants}">
-                <span>
-                    <span th:text="${u.name}"></span>
-                    <span class="badge text-bg-success ms-2" th:if="${entry.contributors.contains(u)}">A contribué</span>
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                <h1 class="h3 mb-0" th:text="${entry.name}"></h1>
+                <span class="badge rounded-pill"
+                      th:classappend="${entry.type.name() == 'EVENT'} ? 'text-bg-success' : 'text-bg-primary'"
+                      th:text="${entry.type.name() == 'EVENT'} ? 'Évènement' : 'Tâche'"></span>
+            </div>
+
+            <p class="mb-2">
+                <span class="badge text-bg-light border me-2" th:if="${allDay}">Toute la journée</span>
+                <span th:if="${allDay}" th:text="${formattedDate}"></span>
+                <span th:unless="${allDay}">
+                    <span th:text="${formattedDate}"></span>
+                    <span th:if="${entry.type.name() == 'EVENT'}">→ <span th:text="${formattedEndDate}"></span></span>
                 </span>
-                <form th:if="${entry.creator.login == #authentication.name or u.login == #authentication.name}"
-                      th:action="@{/entries/{id}/toggle-contrib(id=${entry.id})}" method="post" class="m-0">
-                    <input type="hidden" name="targetUserId" th:value="${u.id}"/>
-                    <button type="submit" th:class="${entry.contributors.contains(u)} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'"
-                            th:text="${entry.contributors.contains(u)} ? 'Retirer la contribution' : 'Marquer comme contribué'"></button>
-                </form>
-            </li>
-        </ul>
-        <form th:if="${!currentUserAssigned}" th:action="@{/entries/{id}/self-assign(id=${entry.id})}" method="post">
-            <button type="submit" class="btn btn-outline-primary mb-3">S'assigner</button>
-        </form>
-        <form th:if="${currentUserAssigned}" th:action="@{/entries/{id}/self-unassign(id=${entry.id})}" method="post">
-            <button type="submit" class="btn btn-outline-secondary mb-3">Se désassigner</button>
-        </form>
+            </p>
+
+            <p th:if="${entry.description}" class="mb-2" th:text="${entry.description}"></p>
+
+            <p class="mb-0 text-muted">
+                Créé par
+                <span class="fw-bold text-primary" th:text="${entry.creator.name}"></span>
+                <span class="badge rounded-pill text-bg-primary ms-1">Créateur</span>
+            </p>
+
+            <div th:if="${hasRecurrence}" class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#recurrenceDetails"
+                        aria-expanded="false" aria-controls="recurrenceDetails">
+                    Récurrence
+                </button>
+                <div class="collapse mt-2" id="recurrenceDetails">
+                    <div class="card card-body bg-light py-2">
+                        <p class="mb-1" th:text="${recurrenceSummary}"></p>
+                        <p class="mb-1" th:if="${recurrenceUntil}">Jusqu'au <span th:text="${recurrenceUntil}"></span></p>
+                        <p class="mb-0" th:if="${not #lists.isEmpty(recurrenceExDates)}">
+                            Dates exclues :
+                            <span th:each="d, iter : ${recurrenceExDates}" th:text="${d} + (${iter.last} ? '' : ', ')"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <div th:if="${entry.type.name() == 'EVENT'}" class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h2 class="h5">Participants</h2>
+            <ul class="list-group list-group-flush" th:if="${not #lists.isEmpty(entry.participants)}">
+                <li class="list-group-item d-flex align-items-center gap-2" th:each="u : ${entry.participants}">
+                    <span class="rounded-circle text-bg-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                          style="width:28px;height:28px;font-size:0.75rem;" th:text="${#strings.substring(u.name,0,1)}"></span>
+                    <span th:classappend="${u.login == entry.creator.login} ? 'fw-bold text-primary' : ''" th:text="${u.name}"></span>
+                    <span class="badge rounded-pill text-bg-primary" th:if="${u.login == entry.creator.login}">Créateur</span>
+                </li>
+            </ul>
+            <p class="text-muted mb-0" th:if="${#lists.isEmpty(entry.participants)}">Aucun participant pour l'instant.</p>
+        </div>
+    </div>
 
-    <a href="/" class="btn btn-secondary mt-3">Retour à la liste</a>
-    <a th:href="@{/entries/{id}/edit(id=${entry.id})}" class="btn btn-primary mt-3">Modifier</a>
-    <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#deleteModal">Supprimer</button>
+    <div th:if="${entry.type.name() == 'TASK'}" class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge rounded-pill" th:classappend="${entry.done} ? 'text-bg-success' : 'text-bg-secondary'"
+                      th:text="${entry.done} ? 'Terminée' : 'En cours'"></span>
+                <span class="badge rounded-pill text-bg-info" th:if="${entry.validatedByOther}">Validée manuellement</span>
+            </div>
+
+            <form th:if="${entry.creator.login == #authentication.name}"
+                  th:action="@{/entries/{id}/toggle-validated-by-other(id=${entry.id})}" method="post" class="mb-3">
+                <button type="submit" th:class="${entry.validatedByOther} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-info'"
+                        th:text="${entry.validatedByOther} ? 'Retirer la validation manuelle' : 'Valider manuellement'"></button>
+            </form>
+
+            <h2 class="h5">Participants</h2>
+            <ul class="list-group list-group-flush mb-3" th:if="${not #lists.isEmpty(entry.participants)}">
+                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2" th:each="u : ${entry.participants}">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="rounded-circle text-bg-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                              style="width:28px;height:28px;font-size:0.75rem;" th:text="${#strings.substring(u.name,0,1)}"></span>
+                        <span th:classappend="${entry.contributors.contains(u)} ? 'fw-bold text-success' : (${u.login == entry.creator.login} ? 'fw-bold text-primary' : '')"
+                              th:text="${u.name}"></span>
+                        <span class="badge rounded-pill text-bg-primary" th:if="${u.login == entry.creator.login}">Créateur</span>
+                        <span class="badge rounded-pill text-bg-success" th:if="${entry.contributors.contains(u)}">A contribué</span>
+                    </span>
+                    <form th:if="${entry.creator.login == #authentication.name or u.login == #authentication.name}"
+                          th:action="@{/entries/{id}/toggle-contrib(id=${entry.id})}" method="post" class="m-0">
+                        <input type="hidden" name="targetUserId" th:value="${u.id}"/>
+                        <button type="submit" th:class="${entry.contributors.contains(u)} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'"
+                                th:text="${entry.contributors.contains(u)} ? 'Retirer la contribution' : 'Marquer comme contribué'"></button>
+                    </form>
+                </li>
+            </ul>
+            <p class="text-muted mb-3" th:if="${#lists.isEmpty(entry.participants)}">Aucun participant pour l'instant.</p>
+
+            <form th:if="${!currentUserAssigned}" th:action="@{/entries/{id}/self-assign(id=${entry.id})}" method="post">
+                <button type="submit" class="btn btn-outline-primary">S'assigner</button>
+            </form>
+            <form th:if="${currentUserAssigned}" th:action="@{/entries/{id}/self-unassign(id=${entry.id})}" method="post">
+                <button type="submit" class="btn btn-outline-secondary">Se désassigner</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="/" class="btn btn-secondary">Retour au calendrier</a>
+        <a th:href="@{/entries/{id}/edit(id=${entry.id})}" class="btn btn-primary">Modifier</a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Supprimer</button>
+    </div>
 
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -72,8 +138,6 @@
             </div>
         </div>
     </div>
-    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
-    <div class="alert alert-warning" th:if="${message}" th:text="${message}"></div>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
