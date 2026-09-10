@@ -59,6 +59,9 @@ public abstract class Entry {
 
     public User getCreator() { return creator; }
     public RecurrenceRule getRecurrence() { return recurrence; }
+    public boolean isRecurring() {
+        return recurrence != null;
+    }
 
     public abstract EntryType getType();
 

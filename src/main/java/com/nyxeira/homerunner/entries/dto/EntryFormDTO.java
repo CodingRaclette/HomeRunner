@@ -3,11 +3,13 @@ package com.nyxeira.homerunner.entries.dto;
 import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.entries.model.Event;
+import com.nyxeira.homerunner.entries.model.Frequency;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,6 +29,10 @@ public class EntryFormDTO {
 
     private String description;
 
+    private Frequency frequency;
+    private int interval;
+    private LocalDate until;
+
     private List<Long> participantIds;
 
 
@@ -43,6 +49,9 @@ public class EntryFormDTO {
         d.setDescription(getDescription());
         d.setEndDate(getEndDate());
         d.setParticipantIds(getParticipantIds());
+        d.setFrequency(getFrequency());
+        d.setInterval(getInterval());
+        d.setUntil(getUntil());
         return d;
     }
 
@@ -52,6 +61,9 @@ public class EntryFormDTO {
         d.setDate(getDate());
         d.setDescription(getDescription());
         d.setParticipantIds(getParticipantIds());
+        d.setFrequency(getFrequency());
+        d.setInterval(getInterval());
+        d.setUntil(getUntil());
         return d;
     }
 
@@ -66,6 +78,12 @@ public class EntryFormDTO {
         if (e.getType().equals(EntryType.EVENT)) {
             Event event = (Event)e;
             form.setEndDate(event.getEndDate());
+        }
+        if (e.getRecurrence() != null) {
+            form.setFrequency(e.getRecurrence().getFrequency());
+            Integer interval = e.getRecurrence().getInterval();
+            form.setInterval(interval == null ? 0 : interval);
+            form.setUntil(e.getRecurrence().getUntil());
         }
         return form;
     }
@@ -124,5 +142,29 @@ public class EntryFormDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Frequency getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(Frequency frequency) {
+        this.frequency = frequency;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
+
+    public void setUntil(LocalDate until) {
+        this.until = until;
+    }
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public LocalDate getUntil() {
+        return until;
     }
 }
