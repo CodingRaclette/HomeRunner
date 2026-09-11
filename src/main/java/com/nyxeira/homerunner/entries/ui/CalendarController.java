@@ -1,4 +1,4 @@
-package com.nyxeira.homerunner.calendarview.ui;
+package com.nyxeira.homerunner.entries.ui;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

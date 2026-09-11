@@ -1,4 +1,4 @@
-package com.nyxeira.homerunner.calendarview.ui;
+package com.nyxeira.homerunner.entries.ui;
 
 import com.nyxeira.homerunner.entries.dto.CalendarItemDTO;
 import com.nyxeira.homerunner.entries.services.CalendarService;
