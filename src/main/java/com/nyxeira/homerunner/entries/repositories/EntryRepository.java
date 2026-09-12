@@ -19,4 +19,14 @@ public interface EntryRepository extends JpaRepository<Entry, Long> {
     List<Entry> findInPeriodOrRecurring(@Param("start") LocalDateTime start,
                                         @Param("end") LocalDateTime end,
                                         @Param("periodStart") LocalDate periodStart);
+
+    // Utilisé par ReminderScheduler pour déplier la fenêtre glissante des occurrences futures
+    // (cf. conception 5.8) : toute entrée récurrente encore active qui demande un rappel.
+    @Query("""
+    select e from Entry e
+    where e.recurrence is not null
+      and e.reminderMinutesBefore is not null
+      and (e.recurrence.until is null or e.recurrence.until >= :today)
+    """)
+    List<Entry> findRecurringWithReminder(@Param("today") LocalDate today);
 }

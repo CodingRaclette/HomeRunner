@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:insert="~{fragments/layout :: head(title='Notifications')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container" style="max-width: 700px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Notifications</h1>
+        <form th:if="${not #lists.isEmpty(notifications)}" th:action="@{/notifications/read-all}" method="post">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Tout marquer comme lu</button>
+        </form>
+    </div>
+
+    <p class="text-muted" th:if="${#lists.isEmpty(notifications)}">Aucune notification pour l'instant.</p>
+
+    <div class="list-group">
+        <a th:each="n : ${notifications}"
+           th:href="@{/notifications/{id}/open(id=${n.id})}"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3"
+           th:classappend="${n.read} ? '' : 'list-group-item-light fw-bold'">
+            <span th:text="${n.message}"></span>
+            <small class="text-muted text-nowrap" th:text="${n.formattedDate}"></small>
+        </a>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

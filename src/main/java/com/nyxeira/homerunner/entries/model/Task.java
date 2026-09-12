@@ -39,6 +39,7 @@ public class Task extends Entry implements Trackable {
         this.description = d.getDescription();
         this.creator = creator;
         this.recurrence = d.toRecurrenceRule();
+        this.reminderMinutesBefore = d.getReminderMinutesBefore();
     }
 
     public boolean isValidatedByOther() { return validatedByOther; }
@@ -53,6 +54,7 @@ public class Task extends Entry implements Trackable {
         this.date = taskDTO.getDate();
         this.description = taskDTO.getDescription();
         this.recurrence = taskDTO.toRecurrenceRule();
+        this.reminderMinutesBefore = taskDTO.getReminderMinutesBefore();
     }
 
 

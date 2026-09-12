@@ -14,6 +14,23 @@
         <a class="navbar-brand" th:href="@{/}">HomeRunner</a>
         <div class="navbar-nav">
             <a class="nav-link" th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')">Utilisateurs</a>
+            <div class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                <a class="nav-link dropdown-toggle position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Notifications
+                    <span th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                          th:text="${unreadNotificationCount}"></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 320px;">
+                    <li th:if="${#lists.isEmpty(recentNotifications)}"><span class="dropdown-item-text text-muted">Aucune notification</span></li>
+                    <li th:each="n : ${recentNotifications}">
+                        <a class="dropdown-item text-wrap" th:classappend="${n.read} ? '' : 'fw-bold'"
+                           th:href="@{/notifications/{id}/open(id=${n.id})}" th:text="${n.message}"></a>
+                    </li>
+                    <li><hr class="dropdown-divider"/></li>
+                    <li><a class="dropdown-item text-center" th:href="@{/notifications}">Voir toutes les notifications</a></li>
+                </ul>
+            </div>
             <div class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" sec:authentication="principal.user.name"></a>
                 <ul class="dropdown-menu dropdown-menu-end">

@@ -17,6 +17,7 @@ public abstract class EntryDTO {
     private Frequency frequency;
     private int interval;
     private LocalDate until;
+    private Integer reminderMinutesBefore;
 
     public String getName() {
         return name;
@@ -72,6 +73,14 @@ public abstract class EntryDTO {
 
     public void setUntil(LocalDate until) {
         this.until = until;
+    }
+
+    public Integer getReminderMinutesBefore() {
+        return reminderMinutesBefore;
+    }
+
+    public void setReminderMinutesBefore(Integer reminderMinutesBefore) {
+        this.reminderMinutesBefore = reminderMinutesBefore;
     }
 
     // frequency == null signifie "pas de recurrence" ; c'est le seul champ qui fait foi.

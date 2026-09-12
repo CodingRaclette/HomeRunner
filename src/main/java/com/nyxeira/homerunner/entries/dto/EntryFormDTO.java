@@ -41,6 +41,8 @@ public class EntryFormDTO {
 
     private List<Long> participantIds;
 
+    private Integer reminderMinutesBefore;
+
 
     // cohérence des dates : @AssertTrue déclaratif plutôt qu'un if dans le contrôleur
     @AssertTrue(message = "La date de fin doit être postérieure à la date de début.")
@@ -58,6 +60,7 @@ public class EntryFormDTO {
         d.setFrequency(getFrequency());
         d.setInterval(getInterval());
         d.setUntil(getUntil());
+        d.setReminderMinutesBefore(getReminderMinutesBefore());
         return d;
     }
 
@@ -70,6 +73,7 @@ public class EntryFormDTO {
         d.setFrequency(getFrequency());
         d.setInterval(getInterval());
         d.setUntil(getUntil());
+        d.setReminderMinutesBefore(getReminderMinutesBefore());
         return d;
     }
 
@@ -81,6 +85,7 @@ public class EntryFormDTO {
         form.setDate(e.getDate());
         form.setDescription(e.getDescription());
         form.setParticipantIds(e.getParticipantIds());
+        form.setReminderMinutesBefore(e.getReminderMinutesBefore());
         if (e.getType().equals(EntryType.EVENT)) {
             Event event = (Event)e;
             form.setEndDate(event.getEndDate());
@@ -186,5 +191,13 @@ public class EntryFormDTO {
 
     public LocalDate getUntil() {
         return until;
+    }
+
+    public Integer getReminderMinutesBefore() {
+        return reminderMinutesBefore;
+    }
+
+    public void setReminderMinutesBefore(Integer reminderMinutesBefore) {
+        this.reminderMinutesBefore = reminderMinutesBefore;
     }
 }

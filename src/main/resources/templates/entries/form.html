@@ -60,6 +60,17 @@
             <textarea th:field="*{description}" class="form-control"></textarea>
             </label>
         </div>
+        <div class="mb-3" th:unless="${occurrenceDate != null}">
+            <label class="form-label">Rappel
+            <select th:field="*{reminderMinutesBefore}" class="form-select">
+                <option value="">Aucun rappel</option>
+                <option value="15">15 minutes avant</option>
+                <option value="30">30 minutes avant</option>
+                <option value="60">1 heure avant</option>
+                <option value="1440">1 jour avant</option>
+            </select>
+            </label>
+        </div>
 
         <div th:unless="${occurrenceDate != null}">
             <div class="mb-3 form-check">

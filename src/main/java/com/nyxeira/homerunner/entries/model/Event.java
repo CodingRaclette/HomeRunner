@@ -32,6 +32,7 @@ public class Event extends Entry {
         this.creator = creator;
         this.endDate = d.getEndDate();
         this.recurrence = d.toRecurrenceRule();
+        this.reminderMinutesBefore = d.getReminderMinutesBefore();
     }
 
     public LocalDateTime getEndDate() { return endDate; }
@@ -46,5 +47,6 @@ public class Event extends Entry {
         this.description = event.getDescription();
         this.endDate = event.getEndDate();
         this.recurrence = event.toRecurrenceRule();
+        this.reminderMinutesBefore = event.getReminderMinutesBefore();
     }
 }

@@ -46,6 +46,10 @@ public abstract class Entry {
     @Embedded
     RecurrenceRule recurrence;
 
+    // null = pas de rappel demandé. Sinon, nombre de minutes avant l'échéance auquel notifier
+    // les participants (cf. notification.services.NotificationService / ReminderScheduler).
+    Integer reminderMinutesBefore;
+
     public Long getId() { return id; }
     public String getName() { return name; }
     public LocalDateTime getDate() { return date; }
@@ -62,6 +66,8 @@ public abstract class Entry {
     public boolean isRecurring() {
         return recurrence != null;
     }
+
+    public Integer getReminderMinutesBefore() { return reminderMinutesBefore; }
 
     public abstract EntryType getType();
 
