@@ -5,12 +5,8 @@ import com.nyxeira.homerunner.entries.dto.EventDTO;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 
 /**

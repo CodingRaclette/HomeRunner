@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>
  * Ce test existe car un bug réel n'était détecté par aucun test Mockito (qui appelle les
  * écouteurs directement, hors de tout vrai cycle de transaction) : les écouteurs
- * @TransactionalEventListener(AFTER_COMMIT) de NotificationService, sans propagation
+ * TransactionalEventListener(AFTER_COMMIT) de NotificationService, sans propagation
  * REQUIRES_NEW, rejoignaient silencieusement la synchronisation finissante de la transaction
  * d'origine au lieu d'en ouvrir une nouvelle — les Notification restaient en attente de flush et
  * n'étaient jamais réellement commitées (cf. NotificationService).
@@ -64,7 +64,7 @@ class NotificationIntegrationTest {
 
         List<Notification> notifications = notificationRepository.findByRecipientOrderByCreatedAtDesc(participant);
         assertThat(notifications).isNotEmpty();
-        assertThat(notifications.get(0).getId()).isNotNull();
+        assertThat(notifications.getFirst().getId()).isNotNull();
     }
 
     @Test
@@ -83,7 +83,7 @@ class NotificationIntegrationTest {
 
         List<Notification> notifications = notificationRepository.findByRecipientOrderByCreatedAtDesc(participant);
         assertThat(notifications).isNotEmpty();
-        assertThat(notifications.get(0).getId()).isNotNull();
-        assertThat(notifications.get(0).getMessage()).contains("Test suppression").contains("supprimée");
+        assertThat(notifications.getFirst().getId()).isNotNull();
+        assertThat(notifications.getFirst().getMessage()).contains("Test suppression").contains("supprimée");
     }
 }

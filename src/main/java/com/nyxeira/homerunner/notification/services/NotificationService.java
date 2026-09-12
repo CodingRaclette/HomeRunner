@@ -216,11 +216,11 @@ public class NotificationService {
     private Set<User> resolveOccurrenceParticipants(Entry entry, LocalDate date) {
         if (entry instanceof Event) {
             return eventOccurrenceRepository.findByMasterIdAndDate(entry.getId(), date)
-                    .<Set<User>>map(Occurrence::getParticipants)
+                    .map(Occurrence::getParticipants)
                     .orElseGet(entry::getParticipants);
         } else if (entry instanceof Task) {
             return taskOccurrenceRepository.findByMasterIdAndDate(entry.getId(), date)
-                    .<Set<User>>map(Occurrence::getParticipants)
+                    .map(Occurrence::getParticipants)
                     .orElseGet(entry::getParticipants);
         }
         return entry.getParticipants();
