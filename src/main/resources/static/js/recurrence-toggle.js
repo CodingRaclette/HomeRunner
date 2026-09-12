@@ -19,6 +19,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyVisibility() {
         fields.forEach(function (field) {
             field.classList.toggle('d-none', !toggle.checked);
+            // un champ cache (d-none) reste soumis a la validation native HTML5 (ex.
+            // min="1" sur interval) alors qu'il n'est pas focusable : le navigateur
+            // bloque alors silencieusement la soumission du formulaire. On desactive
+            // donc les champs du bloc recurrence quand ils sont caches, ce qui les
+            // exclut a la fois de la validation et de la soumission.
+            field.querySelectorAll('input, select').forEach(function (input) {
+                input.disabled = !toggle.checked;
+            });
         });
     }
 

@@ -9,9 +9,14 @@ import com.nyxeira.homerunner.entries.events.EntryUpdatedEvent;
 import com.nyxeira.homerunner.entries.model.Event;
 import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.entries.model.Task;
+import com.nyxeira.homerunner.entries.model.Frequency;
+import com.nyxeira.homerunner.entries.model.RecurrenceRule;
 import com.nyxeira.homerunner.entries.model.occurrences.EventOccurrence;
+import com.nyxeira.homerunner.entries.model.occurrences.Occurrence;
+import com.nyxeira.homerunner.entries.model.occurrences.TaskOccurrence;
 import com.nyxeira.homerunner.entries.repositories.EntryRepository;
 import com.nyxeira.homerunner.entries.repositories.EventOccurrenceRepository;
+import com.nyxeira.homerunner.entries.repositories.TaskOccurrenceRepository;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
@@ -24,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -48,12 +54,14 @@ class EntryLifeServiceTest {
     @Mock
     EventOccurrenceRepository eventOccurrenceRepository;
     @Mock
+    TaskOccurrenceRepository taskOccurrenceRepository;
+    @Mock
     UserRepository userRepository;
     @Mock
     ApplicationEventPublisher publisher;
 
     private EntryLifeService service() {
-        return new EntryLifeService(entryRepository, eventOccurrenceRepository, userRepository, publisher);
+        return new EntryLifeService(entryRepository, eventOccurrenceRepository, taskOccurrenceRepository, userRepository, publisher);
     }
 
     @Test
@@ -235,5 +243,110 @@ class EntryLifeServiceTest {
         when(entryRepository.findById(5L)).thenReturn(Optional.of(event));
 
         assertThat(service().findById(5L)).isSameAs(event);
+    }
+
+    @Test
+    void cancelOccurrenceAjouteLaDateAuxExDatesDeLaRecurrenceEtPubliePEvent() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        EventDTO dto = new EventDTO();
+        dto.setName("Reunion");
+        dto.setFrequency(Frequency.WEEKLY);
+        dto.setInterval(1);
+        Event event = new Event(dto, creator);
+        LocalDate date = LocalDate.of(2026, 9, 20);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(event));
+        when(userRepository.findByLogin("alice")).thenReturn(Optional.of(creator));
+
+        service().cancelOccurrence(5L, date, "alice");
+
+        assertThat(event.getRecurrence().getExDates()).containsExactly(date);
+        verify(publisher).publishEvent(any(com.nyxeira.homerunner.entries.events.OccurrenceCancelledEvent.class));
+    }
+
+    @Test
+    void retrieveOccurrenceRetireLaDateDesExDatesEtPubliePEvent() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        EventDTO dto = new EventDTO();
+        dto.setName("Reunion");
+        dto.setFrequency(Frequency.WEEKLY);
+        dto.setInterval(1);
+        Event event = new Event(dto, creator);
+        LocalDate date = LocalDate.of(2026, 9, 20);
+        event.getRecurrence().addExDate(date);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(event));
+        when(userRepository.findByLogin("alice")).thenReturn(Optional.of(creator));
+
+        service().retrieveOccurrence(5L, date, "alice");
+
+        assertThat(event.getRecurrence().getExDates()).doesNotContain(date);
+        verify(publisher).publishEvent(any(com.nyxeira.homerunner.entries.events.OccurrenceUpdatedEvent.class));
+    }
+
+    @Test
+    void updateEventOccurrenceMaterialiseUneNouvelleOccurrenceQuandAucuneNExisteEncore() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        EventDTO initial = new EventDTO();
+        initial.setName("Reunion");
+        initial.setDate(LocalDateTime.of(2026, 9, 1, 10, 0));
+        initial.setEndDate(LocalDateTime.of(2026, 9, 1, 11, 0));
+        initial.setFrequency(Frequency.WEEKLY);
+        initial.setInterval(1);
+        Event event = new Event(initial, creator);
+        LocalDate date = LocalDate.of(2026, 9, 8);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(event));
+        when(userRepository.findByLogin("alice")).thenReturn(Optional.of(creator));
+        when(eventOccurrenceRepository.findByMasterIdAndDate(5L, date)).thenReturn(Optional.empty());
+        when(eventOccurrenceRepository.save(any(EventOccurrence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        EventDTO override = new EventDTO();
+        override.setName("Reunion (exceptionnellement en visio)");
+        override.setEndDate(LocalDateTime.of(2026, 9, 8, 12, 0));
+
+        service().updateEventOccurrence(5L, date, override, "alice");
+
+        ArgumentCaptor<EventOccurrence> captor = ArgumentCaptor.forClass(EventOccurrence.class);
+        verify(eventOccurrenceRepository).save(captor.capture());
+        assertThat(captor.getValue().getName()).isEqualTo("Reunion (exceptionnellement en visio)");
+        assertThat(captor.getValue().getEndDate()).isEqualTo(LocalDateTime.of(2026, 9, 8, 12, 0));
+        verify(publisher).publishEvent(any(com.nyxeira.homerunner.entries.events.OccurrenceUpdatedEvent.class));
+    }
+
+    @Test
+    void updateEventOccurrenceRefuseSiLEntreeNEstPasUnEvent() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        Task task = new Task(new TaskDTO(), creator);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(task));
+
+        assertThatThrownBy(() -> service().updateEventOccurrence(5L, LocalDate.of(2026, 9, 8), new EventDTO(), "alice"))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void resolveOccurrenceRenvoieLOccurrenceMaterialiseeDUnEventSiElleExiste() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        Event event = new Event(new EventDTO(), creator);
+        LocalDate date = LocalDate.of(2026, 9, 8);
+        EventOccurrence materialized = new EventOccurrence(event, date);
+        // event.getId() est null tant que l'entite n'a jamais ete persistee (@GeneratedValue) :
+        // on cale le mock sur cette meme cle plutot que de bricoler l'id par reflexion.
+        when(eventOccurrenceRepository.findByMasterIdAndDate(event.getId(), date)).thenReturn(Optional.of(materialized));
+
+        Occurrence resolved = service().resolveOccurrence(event, date);
+
+        assertThat(resolved).isSameAs(materialized);
+    }
+
+    @Test
+    void resolveOccurrenceConstruitUneOccurrenceTransitoireDUneTacheSiRienNEstMaterialise() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        Task task = new Task(new TaskDTO(), creator);
+        LocalDate date = LocalDate.of(2026, 9, 8);
+        when(taskOccurrenceRepository.findByMasterIdAndDate(null, date)).thenReturn(Optional.empty());
+
+        Occurrence resolved = service().resolveOccurrence(task, date);
+
+        assertThat(resolved).isInstanceOf(TaskOccurrence.class);
+        assertThat(resolved.getDate()).isEqualTo(date);
+        verify(taskOccurrenceRepository, never()).save(any());
     }
 }

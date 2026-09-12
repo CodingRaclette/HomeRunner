@@ -32,7 +32,11 @@ public class EntryFormDTO {
     private String description;
 
     private Frequency frequency;
-    private int interval;
+    // par defaut a 1 (et non 0) : le champ HTML a un attribut min="1", or quand la case
+    // "Recurrent" n'est pas cochee ce champ reste dans le DOM (juste cache en display:none)
+    // et un input number invalide (valeur 0 < min) bloque silencieusement la soumission
+    // du formulaire cote navigateur (cf. recurrence-toggle.js qui desactive aussi le champ)
+    private int interval = 1;
     private LocalDate until;
 
     private List<Long> participantIds;
@@ -84,7 +88,7 @@ public class EntryFormDTO {
         if (e.getRecurrence() != null) {
             form.setFrequency(e.getRecurrence().getFrequency());
             Integer interval = e.getRecurrence().getInterval();
-            form.setInterval(interval == null ? 0 : interval);
+            form.setInterval(interval == null || interval < 1 ? 1 : interval);
             form.setUntil(e.getRecurrence().getUntil());
         }
         return form;

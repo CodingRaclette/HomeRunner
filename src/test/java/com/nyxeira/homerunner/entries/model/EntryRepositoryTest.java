@@ -141,4 +141,92 @@ class EntryRepositoryTest {
             assertThat(e.getParticipantIds()).containsExactly(bob.getId());
         });
     }
+
+    // --- findInPeriodOrRecurring : la requete qui alimente CalendarService.getCalendar ---
+    // Une entree "matche" si (a) sa date tombe dans [start, end], OU (b) elle est recurrente
+    // et sa recurrence n'est pas deja terminee avant le debut de la periode (until == null,
+    // ou until >= periodStart).
+
+    private Task persistTask(User creator, String name, LocalDateTime date) {
+        Task task = new Task();
+        task.name = name;
+        task.date = date;
+        task.creator = creator;
+        return em.persistAndFlush(task);
+    }
+
+    private Task persistRecurringTask(User creator, String name, LocalDateTime date, Frequency frequency, LocalDate until) {
+        Task task = new Task();
+        task.name = name;
+        task.date = date;
+        task.creator = creator;
+        RecurrenceRule rule = new RecurrenceRule();
+        rule.frequency = frequency;
+        rule.interval = 1;
+        rule.until = until;
+        task.recurrence = rule;
+        return em.persistAndFlush(task);
+    }
+
+    @Test
+    void trouveUneEntreeNonRecurrenteDontLaDateTombeDansLaPeriode() {
+        User creator = persistCreator();
+        persistTask(creator, "Dans la periode", LocalDateTime.of(2026, 9, 15, 10, 0));
+        em.clear();
+
+        List<Entry> found = entryRepository.findInPeriodOrRecurring(
+                LocalDateTime.of(2026, 9, 1, 0, 0), LocalDateTime.of(2026, 9, 30, 23, 59), LocalDate.of(2026, 9, 1));
+
+        assertThat(found).extracting(Entry::getName).containsExactly("Dans la periode");
+    }
+
+    @Test
+    void nExcluPasUneEntreeNonRecurrenteDontLaDateEstHorsPeriode() {
+        User creator = persistCreator();
+        persistTask(creator, "Hors periode", LocalDateTime.of(2026, 10, 15, 10, 0));
+        em.clear();
+
+        List<Entry> found = entryRepository.findInPeriodOrRecurring(
+                LocalDateTime.of(2026, 9, 1, 0, 0), LocalDateTime.of(2026, 9, 30, 23, 59), LocalDate.of(2026, 9, 1));
+
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void trouveUneEntreeRecurrenteSansUntilMemeSiSaDateAncreEstAnterieureALaPeriode() {
+        User creator = persistCreator();
+        persistRecurringTask(creator, "Recurrente sans fin", LocalDateTime.of(2026, 1, 1, 8, 0), Frequency.WEEKLY, null);
+        em.clear();
+
+        List<Entry> found = entryRepository.findInPeriodOrRecurring(
+                LocalDateTime.of(2026, 9, 1, 0, 0), LocalDateTime.of(2026, 9, 30, 23, 59), LocalDate.of(2026, 9, 1));
+
+        assertThat(found).extracting(Entry::getName).containsExactly("Recurrente sans fin");
+    }
+
+    @Test
+    void trouveUneEntreeRecurrenteDontLUntilEstDansOuApresLaPeriode() {
+        User creator = persistCreator();
+        persistRecurringTask(creator, "Se termine pendant la periode", LocalDateTime.of(2026, 1, 1, 8, 0),
+                Frequency.WEEKLY, LocalDate.of(2026, 9, 15));
+        em.clear();
+
+        List<Entry> found = entryRepository.findInPeriodOrRecurring(
+                LocalDateTime.of(2026, 9, 1, 0, 0), LocalDateTime.of(2026, 9, 30, 23, 59), LocalDate.of(2026, 9, 1));
+
+        assertThat(found).extracting(Entry::getName).containsExactly("Se termine pendant la periode");
+    }
+
+    @Test
+    void exclutUneEntreeRecurrenteDejaTermineeAvantLeDebutDeLaPeriode() {
+        User creator = persistCreator();
+        persistRecurringTask(creator, "Deja terminee", LocalDateTime.of(2026, 1, 1, 8, 0),
+                Frequency.WEEKLY, LocalDate.of(2026, 8, 1));
+        em.clear();
+
+        List<Entry> found = entryRepository.findInPeriodOrRecurring(
+                LocalDateTime.of(2026, 9, 1, 0, 0), LocalDateTime.of(2026, 9, 30, 23, 59), LocalDate.of(2026, 9, 1));
+
+        assertThat(found).isEmpty();
+    }
 }
