@@ -70,10 +70,10 @@
                 </div>
                 <div th:unless="${entry.recurrence.exDates.contains(occurrenceDate)}" class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="badge rounded-pill text-bg-info">Occurrence individuelle</span>
-                    <a th:if="${entry.type.name() == 'EVENT'}"
+                    <a th:if="${entry.type.name() == 'EVENT' and canEdit}"
                        th:href="@{/entries/{id}/occurrences/{date}/edit(id=${entry.id},date=${occurrenceDate})}"
                        class="btn btn-sm btn-outline-primary">Modifier cette occurrence</a>
-                    <form th:action="@{/entries/{id}/occurrences/{date}/cancel(id=${entry.id},date=${occurrenceDate})}" method="post" class="m-0">
+                    <form th:if="${canEdit}" th:action="@{/entries/{id}/occurrences/{date}/cancel(id=${entry.id},date=${occurrenceDate})}" method="post" class="m-0">
                         <button type="submit" class="btn btn-sm btn-outline-danger">Annuler cette occurrence</button>
                     </form>
                 </div>
@@ -183,8 +183,8 @@
 
     <div class="d-flex flex-wrap gap-2 mb-4">
         <a href="/" class="btn btn-secondary">Retour au calendrier</a>
-        <a th:href="@{/entries/{id}/edit(id=${entry.id})}" class="btn btn-primary">Modifier</a>
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Supprimer</button>
+        <a th:if="${canEdit}" th:href="@{/entries/{id}/edit(id=${entry.id})}" class="btn btn-primary">Modifier</a>
+        <button th:if="${canDelete}" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Supprimer</button>
     </div>
 
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">

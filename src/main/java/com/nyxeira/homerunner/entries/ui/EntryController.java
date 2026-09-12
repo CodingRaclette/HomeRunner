@@ -144,7 +144,7 @@ public class EntryController {
             return FORM_PATH;
         } catch (AccessDeniedException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas modifier cette occurrence.");
-            return "redirect:/entries/" + id;
+            return redirectToEntry(id, date);
         }
     }
 
@@ -183,6 +183,7 @@ public class EntryController {
         // pouvant modifier l'entrée (isEditableBy) peut gérer les participants d'un tiers.
         boolean canEdit = entry.isEditableBy(currentUser);
         model.addAttribute("canEdit", canEdit);
+        model.addAttribute("canDelete", entry.isDeletableBy(currentUser));
         if (canEdit) {
             List<Long> participantIds = participants.stream().map(User::getId).toList();
             model.addAttribute("availableParticipants", getParticipantCandidates().stream()
