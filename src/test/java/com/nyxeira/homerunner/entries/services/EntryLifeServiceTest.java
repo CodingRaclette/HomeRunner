@@ -9,7 +9,9 @@ import com.nyxeira.homerunner.entries.events.EntryUpdatedEvent;
 import com.nyxeira.homerunner.entries.model.Event;
 import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.entries.model.Task;
+import com.nyxeira.homerunner.entries.model.occurrences.EventOccurrence;
 import com.nyxeira.homerunner.entries.repositories.EntryRepository;
+import com.nyxeira.homerunner.entries.repositories.EventOccurrenceRepository;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
@@ -44,12 +46,14 @@ class EntryLifeServiceTest {
     @Mock
     EntryRepository entryRepository;
     @Mock
+    EventOccurrenceRepository eventOccurrenceRepository;
+    @Mock
     UserRepository userRepository;
     @Mock
     ApplicationEventPublisher publisher;
 
     private EntryLifeService service() {
-        return new EntryLifeService(entryRepository, userRepository, publisher);
+        return new EntryLifeService(entryRepository, eventOccurrenceRepository, userRepository, publisher);
     }
 
     @Test

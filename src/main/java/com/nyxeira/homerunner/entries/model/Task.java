@@ -46,7 +46,6 @@ public class Task extends Entry implements Trackable {
     public void setValidatedByOther(boolean b) { this.validatedByOther = b; }
 
 
-
     @Override
     public void applyData(EntryDTO dto) {
         TaskDTO taskDTO = (TaskDTO)dto;
@@ -56,10 +55,6 @@ public class Task extends Entry implements Trackable {
         this.recurrence = taskDTO.toRecurrenceRule();
     }
 
-    @Override
-    public boolean isDone() {
-        return isValidatedByOther() | !getContributors().isEmpty();
-    }
 
     public Set<User> getContributors() { return contributors; }
     public List<Long> getContributorIds() {

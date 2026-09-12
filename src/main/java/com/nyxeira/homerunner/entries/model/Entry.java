@@ -70,6 +70,9 @@ public abstract class Entry {
     public void setParticipants(Set<User> participants) {
         this.participants = participants;
     }
+    public boolean isParticipant(User user) { return participants.contains(user); }
+    public void addParticipant(User user) { participants.add(user); }
+    public void removeParticipant(User user) { participants.remove(user); }
 
     public List<Long> getParticipantIds() {
         return getParticipants().stream().map(User::getId).toList();

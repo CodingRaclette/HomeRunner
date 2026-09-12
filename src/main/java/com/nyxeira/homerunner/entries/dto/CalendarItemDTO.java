@@ -3,6 +3,9 @@ package com.nyxeira.homerunner.entries.dto;
 import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.Event;
 import com.nyxeira.homerunner.entries.model.Task;
+import com.nyxeira.homerunner.entries.model.occurrences.EventOccurrence;
+import com.nyxeira.homerunner.entries.model.occurrences.Occurrence;
+import com.nyxeira.homerunner.entries.model.occurrences.TaskOccurrence;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -35,6 +38,33 @@ public class CalendarItemDTO {
         }
         return dto;
     }
+
+    public static CalendarItemDTO fromOccurrenceAtDate(Occurrence occurrence, LocalDateTime occurrenceDateTime) {
+        CalendarItemDTO dto = new CalendarItemDTO();
+        dto.entryId = occurrence.getMaster().getId();
+        dto.occurrenceDate = occurrenceDateTime;
+        dto.type = occurrence.getMaster().getType().name();
+        dto.title = occurrence.getName();
+        dto.startDate = occurrenceDateTime;
+
+        if (occurrence instanceof TaskOccurrence taskOccurrence) {
+            dto.done = taskOccurrence.isDone();
+        }
+        if (occurrence instanceof EventOccurrence eventOccurrence) {
+            if (eventOccurrence.hasEndDateOverridden()) {
+                // deja daté sur le bon jour, saisi via le formulaire de cette occurrence precise
+                dto.endDate = eventOccurrence.getEndDate();
+            } else {
+                // pas de surcharge : on reporte la duree du maitre sur la date de cette occurrence,
+                // exactement comme fromEntryAtDate le fait pour une entrée non materialisée
+                Event master = (Event) eventOccurrence.getMaster();
+                Duration duration = Duration.between(master.getDate(), master.getEndDate());
+                dto.endDate = occurrenceDateTime.plus(duration);
+            }
+        }
+        return dto;
+    }
+
 
     public Long getEntryId() {
         return entryId;

@@ -4,7 +4,10 @@ import com.nyxeira.homerunner.entries.events.*;
 import com.nyxeira.homerunner.entries.exceptions.UserNotParticipantException;
 import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.Task;
+import com.nyxeira.homerunner.entries.model.Trackable;
+import com.nyxeira.homerunner.entries.model.occurrences.TaskOccurrence;
 import com.nyxeira.homerunner.entries.repositories.EntryRepository;
+import com.nyxeira.homerunner.entries.repositories.TaskOccurrenceRepository;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 
@@ -13,15 +16,19 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 public class TaskTrackingService {
 
     private final EntryRepository entryRepository;
+    private final TaskOccurrenceRepository taskOccurrenceRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher publisher;
 
-    public TaskTrackingService(EntryRepository entryRepository, UserRepository userRepository, ApplicationEventPublisher publisher) {
+    public TaskTrackingService(EntryRepository entryRepository, TaskOccurrenceRepository taskOccurrenceRepository, UserRepository userRepository, ApplicationEventPublisher publisher) {
         this.entryRepository = entryRepository;
+        this.taskOccurrenceRepository = taskOccurrenceRepository;
         this.userRepository = userRepository;
         this.publisher = publisher;
     }
@@ -37,32 +44,58 @@ public class TaskTrackingService {
         return task;
     }
 
-    // Ouvert a tout membre authentifie
+    private Trackable resolveTrackable(Long taskId) {
+        return resolveTrackable(taskId, null);
+    }
+
+    private Trackable resolveTrackable(Long taskId, LocalDate date) {
+        Task master = getTask(taskId);
+        if (date == null) {
+            return master; // Si il n'y a pas de date, on retourne la master
+        } else {
+            // Sinon, on récupère/crée l'occurrence à la date concernée
+            return taskOccurrenceRepository.findByMasterIdAndDate(taskId, date)
+                    .orElseGet(() -> taskOccurrenceRepository.save(new TaskOccurrence(master, date)));
+        }
+    }
+
+
+    @Transactional
+    public void selfAssign(Long taskId, LocalDate date,  String actorLogin) {
+        User user = userRepository.findByLogin(actorLogin).orElseThrow();
+        Trackable task = resolveTrackable(taskId, date);
+        task.addParticipant(user);
+        publisher.publishEvent(new SelfAssignEvent(taskId, actorLogin));
+    }
+
     @Transactional
     public void selfAssign(Long taskId, String actorLogin) {
-        Task task = getTask(taskId);
-        User user = userRepository.findByLogin(actorLogin).orElseThrow();
-        task.getParticipants().add(user);
-        publisher.publishEvent(new SelfAssignEvent(taskId, actorLogin));
+        selfAssign(taskId, null, actorLogin);
     }
 
     // Symetrique de selfAssign : tout assigne peut se retirer lui-meme, aucun controle de droit non plus.
     @Transactional
-    public void selfUnassign(Long taskId, String actorLogin) {
-        Task task = getTask(taskId);
+    public void selfUnassign(Long taskId, LocalDate date, String actorLogin) {
+        Trackable task = resolveTrackable(taskId, date);
         User user = userRepository.findByLogin(actorLogin).orElseThrow();
-        task.getParticipants().remove(user);
+        task.removeParticipant(user);
         publisher.publishEvent(new SelfUnassignEvent(taskId, actorLogin));
+    }
+
+    @Transactional
+    public void selfUnassign(Long taskId, String actorLogin) {
+        selfUnassign(taskId, null, actorLogin);
     }
 
 
     @Transactional
-    public void toggleContributor(Long taskId, Long targetUserId, String actorLogin) {
-        Task task = getTask(taskId);
+    public void toggleContributor(Long taskId, LocalDate date, Long targetUserId, String actorLogin) {
+        Trackable task = resolveTrackable(taskId, date);
         User user = userRepository.findByLogin(actorLogin).orElseThrow();
         User targetUser = userRepository.findById(targetUserId).orElseThrow();
 
-        if (!user.equals(targetUser) && !user.equals(task.getCreator())) {
+        Task master = getTask(taskId);
+        if (!user.equals(targetUser) && !user.equals(master.getCreator())) {
             throw new AccessDeniedException("User can't edit this participant");
         }
 
@@ -81,13 +114,24 @@ public class TaskTrackingService {
     }
 
     @Transactional
-    public void toggleValidatedByOther(Long taskId, String actorLogin) {
-        Task task = getTask(taskId);
+    public void toggleContributor(Long taskId, Long targetUserId, String actorLogin) {
+        toggleContributor(taskId, null, targetUserId, actorLogin);
+    }
+
+    @Transactional
+    public void toggleValidatedByOther(Long taskId, LocalDate date, String actorLogin) {
+        Trackable task = resolveTrackable(taskId, date);
         User user = userRepository.findByLogin(actorLogin).orElseThrow();
 
-        if (task.isEditableBy(user)) {
+        Task master = getTask(taskId);
+        if (master.isEditableBy(user)) {
             task.setValidatedByOther(!task.isValidatedByOther());
             publisher.publishEvent(new TaskValidatedByOtherEvent(taskId, task.isValidatedByOther(), actorLogin));
         } else { throw new AccessDeniedException("User can't set this task done"); }
+    }
+
+    @Transactional
+    public void toggleValidatedByOther(Long taskId, String actorLogin) {
+        toggleValidatedByOther(taskId, null, actorLogin);
     }
 }

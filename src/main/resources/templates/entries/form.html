@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
-<head th:insert="~{fragments/layout :: head(title=${form.id != null} ? 'Modifier cette entrée' : 'Nouvelle entrée')}"></head>
+<head th:insert="~{fragments/layout :: head(title=${occurrenceDate != null} ? 'Modifier cette occurrence' : ((${form.id != null} ? 'Modifier cette entrée' : 'Nouvelle entrée')))}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div class="container" style="max-width: 500px;">
     <h1 class="mb-4">
-        <span th:text="${form.id != null} ? 'Modifier cette entrée' : 'Nouvelle entrée'"></span>
-        (<span id="entry-type-label" th:text="${form.type}"></span>)
+        <span th:if="${occurrenceDate != null}">Modifier cette occurrence</span>
+        <span th:unless="${occurrenceDate != null}" th:text="${form.id != null} ? 'Modifier cette entrée' : 'Nouvelle entrée'"></span>
+        <span th:unless="${occurrenceDate != null}">(<span id="entry-type-label" th:text="${form.type}"></span>)</span>
     </h1>
-    <form th:action="${form.id != null} ? @{/entries/{id}/edit(id=${form.id})} : @{/entries}" th:object="${form}" method="post">
+    <p class="text-muted" th:if="${occurrenceDate != null}">
+        Seuls le titre, la description et la date de fin sont propres à cette occurrence ; le reste (date/heure de
+        départ, participants, récurrence) reste géré au niveau de la série complète.
+    </p>
+    <form th:action="${occurrenceDate != null} ? @{/entries/{id}/occurrences/{date}/edit(id=${form.id},date=${occurrenceDate})} : (${form.id != null} ? @{/entries/{id}/edit(id=${form.id})} : @{/entries})"
+          th:object="${form}" method="post">
 
-        <div class="mb-3">
+        <input type="hidden" th:if="${occurrenceDate != null}" th:field="*{type}"/>
+        <div class="mb-3" th:unless="${occurrenceDate != null}">
             <label class="form-label d-block">Type</label>
             <div class="btn-group" role="group" aria-label="Type d'entrée">
                 <input type="radio" th:field="*{type}" th:value="EVENT" class="btn-check" autocomplete="off"/>
@@ -27,13 +34,13 @@
             </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
         </div>
-        <div class="mb-3 form-check">
+        <div class="mb-3 form-check" th:unless="${occurrenceDate != null}">
             <input type="checkbox" class="form-check-input" id="all-day-toggle"/>
             <label class="form-check-label" for="all-day-toggle">Toute la journée</label>
         </div>
         <div class="mb-3 entry-field-datetime">
             <label class="form-label">Date
-            <input type="datetime-local" th:field="*{date}" class="form-control"/>
+            <input type="datetime-local" th:field="*{date}" th:readonly="${occurrenceDate != null}" class="form-control"/>
             </label>
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
         </div>
@@ -54,33 +61,35 @@
             </label>
         </div>
 
-        <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="recurrence-toggle" th:checked="${form.frequency != null}"/>
-            <label class="form-check-label" for="recurrence-toggle">Récurrent</label>
+        <div th:unless="${occurrenceDate != null}">
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="recurrence-toggle" th:checked="${form.frequency != null}"/>
+                <label class="form-check-label" for="recurrence-toggle">Récurrent</label>
+            </div>
+            <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
+                <label class="form-label">Fréquence
+                <select th:field="*{frequency}" class="form-select">
+                    <option value="">—</option>
+                    <option value="DAILY">Quotidienne</option>
+                    <option value="WEEKLY">Hebdomadaire</option>
+                    <option value="MONTHLY">Mensuelle</option>
+                    <option value="YEARLY">Annuelle</option>
+                </select>
+                </label>
+            </div>
+            <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
+                <label class="form-label">Tous les
+                <input type="number" th:field="*{interval}" min="1" class="form-control" style="max-width: 100px; display:inline-block;"/>
+                </label>
+                <span class="text-muted">(en unités de la fréquence choisie)</span>
+            </div>
+            <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
+                <label class="form-label">Jusqu'au (optionnel)
+                <input type="date" th:field="*{until}" class="form-control"/>
+                </label>
+            </div>
         </div>
-        <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
-            <label class="form-label">Fréquence
-            <select th:field="*{frequency}" class="form-select">
-                <option value="">—</option>
-                <option value="DAILY">Quotidienne</option>
-                <option value="WEEKLY">Hebdomadaire</option>
-                <option value="MONTHLY">Mensuelle</option>
-                <option value="YEARLY">Annuelle</option>
-            </select>
-            </label>
-        </div>
-        <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
-            <label class="form-label">Tous les
-            <input type="number" th:field="*{interval}" min="1" class="form-control" style="max-width: 100px; display:inline-block;"/>
-            </label>
-            <span class="text-muted">(en unités de la fréquence choisie)</span>
-        </div>
-        <div class="mb-3 entry-field-recurrence" th:classappend="${form.frequency != null} ? '' : 'd-none'">
-            <label class="form-label">Jusqu'au (optionnel)
-            <input type="date" th:field="*{until}" class="form-control"/>
-            </label>
-        </div>
-        <div class="mb-3">
+        <div class="mb-3" th:unless="${occurrenceDate != null}">
             <label class="form-label">Participants</label>
             <div class="position-relative">
                 <input type="text" id="participant-search" class="form-control"
@@ -94,7 +103,8 @@
             <div id="participant-inputs"></div>
         </div>
 
-        <button type="submit" class="btn btn-primary" th:text="${form.id != null} ? 'Enregistrer' : 'Créer'"></button>
+        <button type="submit" class="btn btn-primary"
+                th:text="${occurrenceDate != null} ? 'Enregistrer cette occurrence' : (${form.id != null} ? 'Enregistrer' : 'Créer')"></button>
     </form>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
@@ -104,8 +114,10 @@
     var selectedParticipantIds = /*[[${form.participantIds}]]*/ [];
     /*]]>*/
 </script>
-<script th:src="@{/js/participant-picker.js}"></script>
-<script th:src="@{/js/entry-type-toggle.js}"></script>
-<script th:src="@{/js/recurrence-toggle.js}"></script>
+<th:block th:unless="${occurrenceDate != null}">
+    <script th:src="@{/js/participant-picker.js}"></script>
+    <script th:src="@{/js/entry-type-toggle.js}"></script>
+    <script th:src="@{/js/recurrence-toggle.js}"></script>
+</th:block>
 </body>
 </html>

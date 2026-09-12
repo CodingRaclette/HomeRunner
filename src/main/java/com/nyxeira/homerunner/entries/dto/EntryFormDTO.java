@@ -4,6 +4,8 @@ import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.entries.model.Event;
 import com.nyxeira.homerunner.entries.model.Frequency;
+import com.nyxeira.homerunner.entries.model.occurrences.EventOccurrence;
+import com.nyxeira.homerunner.usermanagement.model.User;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -85,6 +87,20 @@ public class EntryFormDTO {
             form.setInterval(interval == null ? 0 : interval);
             form.setUntil(e.getRecurrence().getUntil());
         }
+        return form;
+    }
+
+    // APour pré-remplir le formulaire d'édition d'une occurrence isolée
+    // les champs recurrence (frequency/interval/until) n'ont pas de sens ici et restent donc vides.
+    public EntryFormDTO fromEventOccurrence(EventOccurrence occurrence, LocalDateTime occurrenceDateTime) {
+        EntryFormDTO form = new EntryFormDTO();
+        form.setId(occurrence.getMaster().getId());
+        form.setType(EntryType.EVENT);
+        form.setName(occurrence.getName());
+        form.setDate(occurrenceDateTime);
+        form.setDescription(occurrence.getDescription());
+        form.setEndDate(occurrence.getEndDate());
+        form.setParticipantIds(occurrence.getParticipants().stream().map(User::getId).toList());
         return form;
     }
 

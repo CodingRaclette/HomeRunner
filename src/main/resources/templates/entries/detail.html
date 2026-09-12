@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
-<head th:insert="~{fragments/layout :: head(title=${entry.name})}"></head>
+<head th:insert="~{fragments/layout :: head(title=${occurrence != null ? occurrence.name : entry.name})}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div class="container" style="max-width: 700px;">
@@ -11,7 +11,7 @@
     <div class="card shadow-sm mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-                <h1 class="h3 mb-0" th:text="${entry.name}"></h1>
+                <h1 class="h3 mb-0" th:text="${occurrence != null ? occurrence.name : entry.name}"></h1>
                 <span class="badge rounded-pill"
                       th:classappend="${entry.type.name() == 'EVENT'} ? 'text-bg-success' : 'text-bg-primary'"
                       th:text="${entry.type.name() == 'EVENT'} ? 'Évènement' : 'Tâche'"></span>
@@ -26,7 +26,8 @@
                 </span>
             </p>
 
-            <p th:if="${entry.description}" class="mb-2" th:text="${entry.description}"></p>
+            <p th:with="displayDescription=${occurrence != null ? occurrence.description : entry.description}"
+               th:if="${displayDescription}" class="mb-2" th:text="${displayDescription}"></p>
 
             <p class="mb-0 text-muted">
                 Créé par
@@ -44,70 +45,99 @@
                     <div class="card card-body bg-light py-2">
                         <p class="mb-1" th:text="${recurrenceSummary}"></p>
                         <p class="mb-1" th:if="${recurrenceUntil}">Jusqu'au <span th:text="${recurrenceUntil}"></span></p>
-                        <p class="mb-0" th:if="${not #lists.isEmpty(recurrenceExDates)}">
-                            Dates exclues :
-                            <span th:each="d, iter : ${recurrenceExDates}" th:text="${d} + (${iter.last} ? '' : ', ')"></span>
-                        </p>
+                        <div class="mb-0" th:if="${not #lists.isEmpty(recurrenceExDates)}">
+                            <p class="mb-1">Dates exclues :</p>
+                            <ul class="list-unstyled mb-0">
+                                <li th:each="d : ${entry.recurrence.exDates}" class="d-flex align-items-center gap-2 mb-1">
+                                    <a th:href="@{/entries/{id}(id=${entry.id},date=${d})}" th:text="${d}"></a>
+                                    <form th:action="@{/entries/{id}/occurrences/{date}/retrieve(id=${entry.id},date=${d})}" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Rétablir</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Contexte "occurrence isolée" : n'apparait que si on consulte /entries/{id}?date=... -->
+            <div th:if="${occurrenceDate != null}" class="mt-3 p-2 bg-light border rounded d-flex align-items-center gap-2 flex-wrap">
+                <div th:if="${entry.recurrence.exDates.contains(occurrenceDate)}" class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge rounded-pill text-bg-warning">Occurrence annulée</span>
+                    <form th:action="@{/entries/{id}/occurrences/{date}/retrieve(id=${entry.id},date=${occurrenceDate})}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-sm btn-outline-success">Rétablir cette occurrence</button>
+                    </form>
+                </div>
+                <div th:unless="${entry.recurrence.exDates.contains(occurrenceDate)}" class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge rounded-pill text-bg-info">Occurrence individuelle</span>
+                    <a th:if="${entry.type.name() == 'EVENT'}"
+                       th:href="@{/entries/{id}/occurrences/{date}/edit(id=${entry.id},date=${occurrenceDate})}"
+                       class="btn btn-sm btn-outline-primary">Modifier cette occurrence</a>
+                    <form th:action="@{/entries/{id}/occurrences/{date}/cancel(id=${entry.id},date=${occurrenceDate})}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Annuler cette occurrence</button>
+                    </form>
+                </div>
+                <a th:href="@{/entries/{id}(id=${entry.id})}" class="btn btn-sm btn-link">← Voir la série complète</a>
             </div>
         </div>
     </div>
 
-    <div th:if="${entry.type.name() == 'EVENT'}" class="card shadow-sm mb-3">
+    <div th:if="${entry.type.name() == 'EVENT'}" class="card shadow-sm mb-3"
+         th:with="displayParticipants=${occurrence != null ? occurrence.participants : entry.participants}">
         <div class="card-body">
             <h2 class="h5">Participants</h2>
-            <ul class="list-group list-group-flush" th:if="${not #lists.isEmpty(entry.participants)}">
-                <li class="list-group-item d-flex align-items-center gap-2" th:each="u : ${entry.participants}">
+            <ul class="list-group list-group-flush" th:if="${not #lists.isEmpty(displayParticipants)}">
+                <li class="list-group-item d-flex align-items-center gap-2" th:each="u : ${displayParticipants}">
                     <span class="rounded-circle text-bg-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0"
                           style="width:28px;height:28px;font-size:0.75rem;" th:text="${#strings.substring(u.name,0,1)}"></span>
                     <span th:classappend="${u.login == entry.creator.login} ? 'fw-bold text-primary' : ''" th:text="${u.name}"></span>
                     <span class="badge rounded-pill text-bg-primary" th:if="${u.login == entry.creator.login}">Créateur</span>
                 </li>
             </ul>
-            <p class="text-muted mb-0" th:if="${#lists.isEmpty(entry.participants)}">Aucun participant pour l'instant.</p>
+            <p class="text-muted mb-0" th:if="${#lists.isEmpty(displayParticipants)}">Aucun participant pour l'instant.</p>
         </div>
     </div>
 
-    <div th:if="${entry.type.name() == 'TASK'}" class="card shadow-sm mb-3">
+    <div th:if="${entry.type.name() == 'TASK'}" class="card shadow-sm mb-3"
+         th:with="trackable=${occurrence != null ? occurrence : entry}">
         <div class="card-body">
             <div class="d-flex align-items-center gap-2 mb-3">
-                <span class="badge rounded-pill" th:classappend="${entry.done} ? 'text-bg-success' : 'text-bg-secondary'"
-                      th:text="${entry.done} ? 'Terminée' : 'En cours'"></span>
-                <span class="badge rounded-pill text-bg-info" th:if="${entry.validatedByOther}">Validée manuellement</span>
+                <span class="badge rounded-pill" th:classappend="${trackable.done} ? 'text-bg-success' : 'text-bg-secondary'"
+                      th:text="${trackable.done} ? 'Terminée' : 'En cours'"></span>
+                <span class="badge rounded-pill text-bg-info" th:if="${trackable.validatedByOther}">Validée manuellement</span>
             </div>
 
             <form th:if="${entry.creator.login == #authentication.name}"
-                  th:action="@{/entries/{id}/toggle-validated-by-other(id=${entry.id})}" method="post" class="mb-3">
-                <button type="submit" th:class="${entry.validatedByOther} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-info'"
-                        th:text="${entry.validatedByOther} ? 'Retirer la validation manuelle' : 'Valider manuellement'"></button>
+                  th:action="@{/entries/{id}/toggle-validated-by-other(id=${entry.id},date=${occurrenceDate})}" method="post" class="mb-3">
+                <button type="submit" th:class="${trackable.validatedByOther} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-info'"
+                        th:text="${trackable.validatedByOther} ? 'Retirer la validation manuelle' : 'Valider manuellement'"></button>
             </form>
 
             <h2 class="h5">Participants</h2>
-            <ul class="list-group list-group-flush mb-3" th:if="${not #lists.isEmpty(entry.participants)}">
-                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2" th:each="u : ${entry.participants}">
+            <ul class="list-group list-group-flush mb-3" th:if="${not #lists.isEmpty(trackable.participants)}">
+                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2" th:each="u : ${trackable.participants}">
                     <span class="d-flex align-items-center gap-2">
                         <span class="rounded-circle text-bg-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0"
                               style="width:28px;height:28px;font-size:0.75rem;" th:text="${#strings.substring(u.name,0,1)}"></span>
-                        <span th:classappend="${entry.contributors.contains(u)} ? 'fw-bold text-success' : (${u.login == entry.creator.login} ? 'fw-bold text-primary' : '')"
+                        <span th:classappend="${trackable.contributors.contains(u)} ? 'fw-bold text-success' : (${u.login == entry.creator.login} ? 'fw-bold text-primary' : '')"
                               th:text="${u.name}"></span>
                         <span class="badge rounded-pill text-bg-primary" th:if="${u.login == entry.creator.login}">Créateur</span>
-                        <span class="badge rounded-pill text-bg-success" th:if="${entry.contributors.contains(u)}">A contribué</span>
+                        <span class="badge rounded-pill text-bg-success" th:if="${trackable.contributors.contains(u)}">A contribué</span>
                     </span>
                     <form th:if="${entry.creator.login == #authentication.name or u.login == #authentication.name}"
-                          th:action="@{/entries/{id}/toggle-contrib(id=${entry.id})}" method="post" class="m-0">
+                          th:action="@{/entries/{id}/toggle-contrib(id=${entry.id},date=${occurrenceDate})}" method="post" class="m-0">
                         <input type="hidden" name="targetUserId" th:value="${u.id}"/>
-                        <button type="submit" th:class="${entry.contributors.contains(u)} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'"
-                                th:text="${entry.contributors.contains(u)} ? 'Retirer la contribution' : 'Marquer comme contribué'"></button>
+                        <button type="submit" th:class="${trackable.contributors.contains(u)} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'"
+                                th:text="${trackable.contributors.contains(u)} ? 'Retirer la contribution' : 'Marquer comme contribué'"></button>
                     </form>
                 </li>
             </ul>
-            <p class="text-muted mb-3" th:if="${#lists.isEmpty(entry.participants)}">Aucun participant pour l'instant.</p>
+            <p class="text-muted mb-3" th:if="${#lists.isEmpty(trackable.participants)}">Aucun participant pour l'instant.</p>
 
-            <form th:if="${!currentUserAssigned}" th:action="@{/entries/{id}/self-assign(id=${entry.id})}" method="post">
+            <form th:if="${!currentUserAssigned}" th:action="@{/entries/{id}/self-assign(id=${entry.id},date=${occurrenceDate})}" method="post">
                 <button type="submit" class="btn btn-outline-primary">S'assigner</button>
             </form>
-            <form th:if="${currentUserAssigned}" th:action="@{/entries/{id}/self-unassign(id=${entry.id})}" method="post">
+            <form th:if="${currentUserAssigned}" th:action="@{/entries/{id}/self-unassign(id=${entry.id},date=${occurrenceDate})}" method="post">
                 <button type="submit" class="btn btn-outline-secondary">Se désassigner</button>
             </form>
         </div>

@@ -68,4 +68,12 @@ public class RecurrenceRule {
         }
         return occurrences;
     }
+
+    public void addExDate(LocalDate date) {
+        exDates.add(date);
+    }
+
+    public void removeExDate(LocalDate date) {
+        exDates.remove(date);
+    }
 }

@@ -6,11 +6,14 @@ import com.nyxeira.homerunner.entries.model.Entry;
 import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.entries.model.Event;
 import com.nyxeira.homerunner.entries.model.RecurrenceRule;
+import com.nyxeira.homerunner.entries.model.occurrences.EventOccurrence;
+import com.nyxeira.homerunner.entries.model.occurrences.Occurrence;
 import com.nyxeira.homerunner.entries.ui.tools.ParticipantOption;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserRole;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,9 +22,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/entries")
@@ -105,27 +110,83 @@ public class EntryController {
         return "redirect:/entries/" + id;
     }
 
+    @PostMapping("/{id}/occurrences/{date}/cancel")
+    public String cancelOccurrence(@PathVariable Long id,
+                                    @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                    Principal principal) {
+        entryLifeService.cancelOccurrence(id, date, principal.getName());
+        // l'occurrence annulée n'a plus de sens à afficher : on revient sur la master.
+        return "redirect:/entries/" + id;
+    }
+
+    @PostMapping("/{id}/occurrences/{date}/retrieve")
+    public String retrieveOccurrence(@PathVariable Long id,
+                                      @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                      Principal principal) {
+        entryLifeService.retrieveOccurrence(id, date, principal.getName());
+        return "redirect:/entries/" + id + "?date=" + date;
+    }
+
+    @GetMapping("/{id}/occurrences/{date}/edit")
+    public String getOccurrenceEditForm(@PathVariable Long id,
+                                         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                         Principal principal, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            EntryFormDTO form = entryLifeService.getEventOccurrenceForEdit(id, date, principal.getName());
+            model.addAttribute("form", form);
+            model.addAttribute("participantCandidates", getParticipantCandidates());
+            // Indique au template form.html qu'il s'agit d'une occurrence isolée (et non de la master),
+            // pour poster vers la bonne route et masquer les champs sans effet à ce niveau (type/récurrence/participants).
+            model.addAttribute("occurrenceDate", date);
+            return FORM_PATH;
+        } catch (AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas modifier cette occurrence.");
+            return "redirect:/entries/" + id;
+        }
+    }
+
+    @PostMapping("/{id}/occurrences/{date}/edit")
+    public String updateOccurrence(@Valid @ModelAttribute("form") EntryFormDTO form, BindingResult bindingResult,
+                                    @PathVariable Long id,
+                                    @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                    Principal principal, Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("participantCandidates", getParticipantCandidates());
+            model.addAttribute("occurrenceDate", date);
+            return FORM_PATH;
+        }
+        entryLifeService.updateEventOccurrence(id, date, form.toEventDTO(), principal.getName());
+        return "redirect:/entries/" + id + "?date=" + date;
+    }
+
     @GetMapping("/{id}")
-    public String getEntry(@PathVariable Long id, Model model, Principal principal) {
+    public String getEntry(@PathVariable Long id,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                            Model model, Principal principal) {
         Entry entry = entryLifeService.findById(id);
+        // date n'a de sens que pour une entrée récurrente : sinon on retombe sur l'affichage de la master.
+        Occurrence occurrence = (date != null && entry.isRecurring()) ? entryLifeService.resolveOccurrence(entry, date) : null;
         model.addAttribute("entry", entry);
+        model.addAttribute("occurrence", occurrence);
+        model.addAttribute("occurrenceDate", date);
+
         // Utilise par le bloc TASK de entries/detail.html pour savoir s'il faut proposer
         // "S'assigner" ou "Se désassigner" a l'utilisateur courant.
         User currentUser = userRepository.findByLogin(principal.getName()).orElseThrow();
-        model.addAttribute("currentUserAssigned", entry.getParticipants().contains(currentUser));
+        Set<User> participants = occurrence != null ? occurrence.getParticipants() : entry.getParticipants();
+        model.addAttribute("currentUserAssigned", participants.contains(currentUser));
 
         boolean allDay = isAllDay(entry);
         model.addAttribute("allDay", allDay);
-        model.addAttribute("formattedDate", allDay ? entry.getDate().format(DATE_FMT) : entry.getDate().format(DATETIME_FMT));
+        // Seule la date d'ancrage (heure comprise) est reportée sur l'occurrence : la récurrence ne
+        // permet pas de decaler l'heure d'une occurrence individuelle, seulement son contenu.
+        LocalDateTime displayDate = occurrence != null ? date.atTime(entry.getDate().toLocalTime()) : entry.getDate();
+        model.addAttribute("formattedDate", allDay ? displayDate.format(DATE_FMT) : displayDate.format(DATETIME_FMT));
         if (entry instanceof Event event && !allDay) {
-            model.addAttribute("formattedEndDate", event.getEndDate().format(DATETIME_FMT));
+            LocalDateTime endDate = occurrence instanceof EventOccurrence eventOccurrence ? eventOccurrence.getEndDate() : event.getEndDate();
+            model.addAttribute("formattedEndDate", endDate.format(DATETIME_FMT));
         }
 
-        // entry.isRecurring() ne garantit que recurrence != null : sur certaines entrees
-        // (donnees de test anterieures a la validation actuelle, ou formulaire soumis avec le
-        // toggle "Recurrent" decoche sans que interval/until aient ete videes cote client),
-        // l'objet existe mais frequency est null. On le traite alors comme "pas de recurrence"
-        // plutot que de planter sur le switch de formatRecurrenceSummary.
         boolean hasRecurrence = entry.isRecurring() && entry.getRecurrence().getFrequency() != null;
         model.addAttribute("hasRecurrence", hasRecurrence);
         if (hasRecurrence) {
@@ -136,7 +197,6 @@ public class EntryController {
             }
             model.addAttribute("recurrenceExDates", recurrence.getExDates().stream().sorted().map(DATE_FMT::format).toList());
         }
-
         return "entries/detail";
     }
 
@@ -184,5 +244,6 @@ public class EntryController {
             case YEARLY -> n <= 1 ? "Tous les ans" : "Tous les " + n + " ans";
         };
     }
+
 
 }

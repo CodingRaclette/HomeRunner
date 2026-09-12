@@ -2,16 +2,50 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head th:insert="~{fragments/layout :: head(title='Calendrier')}"></head>
 <body>
+<style>
+    /* Objectif : le calendrier occupe exactement la hauteur restante de l'ecran, sans scroll de page.
+       Scope volontairement limite a cette page (style inline plutot que dans layout.html) : les
+       autres pages (formulaires, listes...) doivent garder leur comportement de scroll normal. */
+    html, body {
+        height: 100%;
+    }
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+    body > nav {
+        flex: 0 0 auto;
+    }
+    .calendar-page {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        padding-bottom: 1rem;
+    }
+    .calendar-header {
+        flex: 0 0 auto;
+    }
+    .calendar-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    #calendar {
+        height: 100%;
+    }
+</style>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="container-fluid calendar-page">
+    <div class="d-flex justify-content-between align-items-center mb-3 calendar-header">
         <h1 class="mb-0">Calendrier</h1>
         <div>
             <a th:href="@{/entries/new(type='EVENT')}" class="btn btn-primary btn-sm">Nouvel évènement</a>
             <a th:href="@{/entries/new(type='TASK')}" class="btn btn-outline-primary btn-sm">Nouvelle tâche</a>
         </div>
     </div>
-    <div id="calendar"></div>
+    <div class="calendar-wrap">
+        <div id="calendar"></div>
+    </div>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 <script th:src="@{/webjars/fullcalendar/6.1.11/index.global.min.js}"></script>
@@ -65,6 +99,7 @@
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale: 'fr',
             firstDay: 1,
+            height: 'parent',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
