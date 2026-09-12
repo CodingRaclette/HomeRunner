@@ -10,7 +10,9 @@ import com.nyxeira.homerunner.entries.events.TaskValidatedByOtherEvent;
 import com.nyxeira.homerunner.entries.exceptions.UserNotParticipantException;
 import com.nyxeira.homerunner.entries.model.Event;
 import com.nyxeira.homerunner.entries.model.Task;
+import com.nyxeira.homerunner.entries.model.occurrences.TaskOccurrence;
 import com.nyxeira.homerunner.entries.repositories.EntryRepository;
+import com.nyxeira.homerunner.entries.repositories.TaskOccurrenceRepository;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.model.UserTestBuilder;
 import com.nyxeira.homerunner.usermanagement.repositories.UserRepository;
@@ -22,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -40,12 +43,14 @@ class TaskTrackingServiceTest {
     @Mock
     EntryRepository entryRepository;
     @Mock
+    TaskOccurrenceRepository taskOccurrenceRepository;
+    @Mock
     UserRepository userRepository;
     @Mock
     ApplicationEventPublisher publisher;
 
     private TaskTrackingService service() {
-        return new TaskTrackingService(entryRepository, userRepository, publisher);
+        return new TaskTrackingService(entryRepository, taskOccurrenceRepository, userRepository, publisher);
     }
 
     private Task aTask(User creator) {
@@ -231,8 +236,106 @@ class TaskTrackingServiceTest {
         User creator = UserTestBuilder.aUser().withLogin("alice").build();
         Event event = new Event(new EventDTO(), creator);
         when(entryRepository.findById(5L)).thenReturn(Optional.of(event));
+        when(userRepository.findByLogin("alice")).thenReturn(Optional.of(creator));
 
         assertThatThrownBy(() -> service().selfAssign(5L, "alice"))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // --- Suivi au niveau d'une occurrence precise (tache recurrente) ---
+    // resolveTrackable(taskId, date) delegue a TaskOccurrenceRepository : materialise
+    // l'occurrence si besoin, sans jamais toucher a la master.
+
+    @Test
+    void selfAssignAvecDateMaterialiseLOccurrenceEtLuiAjouteLActeurSansToucherALaMaster() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        User actor = UserTestBuilder.aUser().withLogin("bob").build();
+        Task master = aTask(creator);
+        LocalDate date = LocalDate.of(2026, 9, 20);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(master));
+        when(userRepository.findByLogin("bob")).thenReturn(Optional.of(actor));
+        when(taskOccurrenceRepository.findByMasterIdAndDate(5L, date)).thenReturn(Optional.empty());
+        when(taskOccurrenceRepository.save(any(TaskOccurrence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service().selfAssign(5L, date, "bob");
+
+        ArgumentCaptor<TaskOccurrence> captor = ArgumentCaptor.forClass(TaskOccurrence.class);
+        verify(taskOccurrenceRepository).save(captor.capture());
+        assertThat(captor.getValue().getParticipants()).containsExactly(actor);
+        assertThat(master.getParticipants()).isEmpty();
+        verify(publisher).publishEvent(any(SelfAssignEvent.class));
+    }
+
+    @Test
+    void selfAssignAvecDateReutiliseLOccurrenceDejaMaterialiseeSansEnRecreerUne() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        User actor = UserTestBuilder.aUser().withLogin("bob").build();
+        Task master = aTask(creator);
+        LocalDate date = LocalDate.of(2026, 9, 20);
+        TaskOccurrence existing = new TaskOccurrence(master, date);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(master));
+        when(userRepository.findByLogin("bob")).thenReturn(Optional.of(actor));
+        when(taskOccurrenceRepository.findByMasterIdAndDate(5L, date)).thenReturn(Optional.of(existing));
+
+        service().selfAssign(5L, date, "bob");
+
+        assertThat(existing.getParticipants()).containsExactly(actor);
+        verify(taskOccurrenceRepository, never()).save(any());
+    }
+
+    @Test
+    void selfUnassignAvecDateRetireLActeurDeLOccurrenceSansToucherALaMaster() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        User actor = UserTestBuilder.aUser().withLogin("bob").build();
+        Task master = aTask(creator);
+        master.getParticipants().add(actor); // participant sur la serie entiere
+        LocalDate date = LocalDate.of(2026, 9, 20);
+        TaskOccurrence existing = new TaskOccurrence(master, date);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(master));
+        when(userRepository.findByLogin("bob")).thenReturn(Optional.of(actor));
+        when(taskOccurrenceRepository.findByMasterIdAndDate(5L, date)).thenReturn(Optional.of(existing));
+
+        service().selfUnassign(5L, date, "bob");
+
+        // l'occurrence est desormais surchargee (sans bob) mais la master n'est pas modifiee
+        assertThat(existing.getParticipants()).doesNotContain(actor);
+        assertThat(master.getParticipants()).containsExactly(actor);
+        verify(publisher).publishEvent(any(SelfUnassignEvent.class));
+    }
+
+    @Test
+    void toggleContributorAvecDateAgitSurLesContributeursDeLOccurrenceUniquement() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        User actor = UserTestBuilder.aUser().withLogin("bob").build();
+        Task master = aTask(creator);
+        master.getParticipants().add(actor);
+        LocalDate date = LocalDate.of(2026, 9, 20);
+        TaskOccurrence existing = new TaskOccurrence(master, date);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(master));
+        when(userRepository.findByLogin("bob")).thenReturn(Optional.of(actor));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(actor));
+        when(taskOccurrenceRepository.findByMasterIdAndDate(5L, date)).thenReturn(Optional.of(existing));
+
+        service().toggleContributor(5L, date, 2L, "bob");
+
+        assertThat(existing.getContributors()).containsExactly(actor);
+        assertThat(master.getContributors()).isEmpty();
+    }
+
+    @Test
+    void toggleValidatedByOtherAvecDateNAffecteQueLOccurrence() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        Task master = aTask(creator);
+        LocalDate date = LocalDate.of(2026, 9, 20);
+        TaskOccurrence existing = new TaskOccurrence(master, date);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(master));
+        when(userRepository.findByLogin("alice")).thenReturn(Optional.of(creator));
+        when(taskOccurrenceRepository.findByMasterIdAndDate(5L, date)).thenReturn(Optional.of(existing));
+
+        service().toggleValidatedByOther(5L, date, "alice");
+
+        assertThat(existing.isValidatedByOther()).isTrue();
+        assertThat(master.isValidatedByOther()).isFalse();
+        verify(publisher).publishEvent(any(TaskValidatedByOtherEvent.class));
     }
 }
