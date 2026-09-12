@@ -180,4 +180,59 @@ public class EntryLifeService {
         throw new IllegalStateException("Type d'entrée inconnu : " + entry.getType());
     }
 
+    // Contrairement à resolveOccurrence, celle-ci persiste l'occurrence si elle n'existe pas encore :
+    // nécessaire dès qu'on veut réellement modifier l'occurrence (ici, ses participants).
+    private Occurrence materializeOccurrence(Entry entry, LocalDate date) {
+        if (entry instanceof Event event) {
+            return eventOccurrenceRepository.findByMasterIdAndDate(entry.getId(), date)
+                    .<Occurrence>map(o -> o)
+                    .orElseGet(() -> eventOccurrenceRepository.save(new EventOccurrence(event, date)));
+        } else if (entry instanceof Task task) {
+            return taskOccurrenceRepository.findByMasterIdAndDate(entry.getId(), date)
+                    .<Occurrence>map(o -> o)
+                    .orElseGet(() -> taskOccurrenceRepository.save(new TaskOccurrence(task, date)));
+        }
+        throw new IllegalStateException("Type d'entrée inconnu : " + entry.getType());
+    }
+
+    // Si une date est fournie sur une entrée récurrente, seule cette occurrence est modifiée ;
+    // sinon (page de la master, ou entrée non récurrente), c'est la master qui est modifiée.
+    @Transactional
+    public void addParticipant(Long entryId, Long targetUserId, LocalDate date, String actorLogin) {
+        Entry entry = entryRepository.findById(entryId).orElseThrow();
+        User actor = userRepository.findByLogin(actorLogin).orElseThrow();
+        if (!entry.isEditableBy(actor)) {
+            throw new AccessDeniedException("User can't edit participants of this entry");
+        }
+        User target = userRepository.findById(targetUserId).orElseThrow();
+
+        if (date != null && entry.isRecurring()) {
+            materializeOccurrence(entry, date).addParticipant(target);
+            publisher.publishEvent(new OccurrenceUpdatedEvent(entryId, date, actorLogin));
+        } else {
+            List<Long> oldParticipants = entry.getParticipantIds();
+            entry.addParticipant(target);
+            publisher.publishEvent(new EntryUpdatedEvent(entryId, oldParticipants, entry.getParticipantIds(), actorLogin));
+        }
+    }
+
+    @Transactional
+    public void removeParticipant(Long entryId, Long targetUserId, LocalDate date, String actorLogin) {
+        Entry entry = entryRepository.findById(entryId).orElseThrow();
+        User actor = userRepository.findByLogin(actorLogin).orElseThrow();
+        if (!entry.isEditableBy(actor)) {
+            throw new AccessDeniedException("User can't edit participants of this entry");
+        }
+        User target = userRepository.findById(targetUserId).orElseThrow();
+
+        if (date != null && entry.isRecurring()) {
+            materializeOccurrence(entry, date).removeParticipant(target);
+            publisher.publishEvent(new OccurrenceUpdatedEvent(entryId, date, actorLogin));
+        } else {
+            List<Long> oldParticipants = entry.getParticipantIds();
+            entry.removeParticipant(target);
+            publisher.publishEvent(new EntryUpdatedEvent(entryId, oldParticipants, entry.getParticipantIds(), actorLogin));
+        }
+    }
+
 }

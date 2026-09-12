@@ -35,6 +35,9 @@ public class EntryController {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm");
 
+    // Vue pour le template : la date brute sert aux liens/formulaires (retrieve, occurrence), le libellé formaté à l'affichage.
+    public record ExDateView(LocalDate date, String formatted) {}
+
     private final EntryLifeService entryLifeService;
     private final UserRepository userRepository;
     private final String FORM_PATH = "entries/form";
@@ -176,6 +179,17 @@ public class EntryController {
         Set<User> participants = occurrence != null ? occurrence.getParticipants() : entry.getParticipants();
         model.addAttribute("currentUserAssigned", participants.contains(currentUser));
 
+        // Contrôle l'affichage des boutons +/retirer sur la liste de participants : seul quelqu'un
+        // pouvant modifier l'entrée (isEditableBy) peut gérer les participants d'un tiers.
+        boolean canEdit = entry.isEditableBy(currentUser);
+        model.addAttribute("canEdit", canEdit);
+        if (canEdit) {
+            List<Long> participantIds = participants.stream().map(User::getId).toList();
+            model.addAttribute("availableParticipants", getParticipantCandidates().stream()
+                    .filter(p -> !participantIds.contains(p.id()))
+                    .toList());
+        }
+
         boolean allDay = isAllDay(entry);
         model.addAttribute("allDay", allDay);
         // Seule la date d'ancrage (heure comprise) est reportée sur l'occurrence : la récurrence ne
@@ -195,11 +209,36 @@ public class EntryController {
             if (recurrence.getUntil() != null) {
                 model.addAttribute("recurrenceUntil", recurrence.getUntil().format(DATE_FMT));
             }
-            model.addAttribute("recurrenceExDates", recurrence.getExDates().stream().sorted().map(DATE_FMT::format).toList());
+            model.addAttribute("recurrenceExDates", recurrence.getExDates().stream().sorted()
+                    .map(d -> new ExDateView(d, DATE_FMT.format(d))).toList());
         }
         return "entries/detail";
     }
 
+
+    @PostMapping("/{id}/participants/add")
+    public String addParticipant(@PathVariable Long id, @RequestParam Long targetUserId,
+                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                  Principal principal, RedirectAttributes redirectAttributes) {
+        try {
+            entryLifeService.addParticipant(id, targetUserId, date, principal.getName());
+        } catch (AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas modifier les participants de cette entrée.");
+        }
+        return redirectToEntry(id, date);
+    }
+
+    @PostMapping("/{id}/participants/remove")
+    public String removeParticipant(@PathVariable Long id, @RequestParam Long targetUserId,
+                                     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                     Principal principal, RedirectAttributes redirectAttributes) {
+        try {
+            entryLifeService.removeParticipant(id, targetUserId, date, principal.getName());
+        } catch (AccessDeniedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas modifier les participants de cette entrée.");
+        }
+        return redirectToEntry(id, date);
+    }
 
     @PostMapping("/{id}/delete")
     public String deleteEntry(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
@@ -211,6 +250,12 @@ public class EntryController {
         }
         redirectAttributes.addFlashAttribute("successMessage", "L'entrée " + id + " a bien été supprimée");
         return "redirect:/";
+    }
+
+    // Reconstruit l'URL de retour en conservant le contexte d'occurrence (date) quand il y en a un,
+    // pour que l'utilisateur retombe sur la même vue qu'avant l'action (cf. TaskTrackingController).
+    private String redirectToEntry(Long id, LocalDate date) {
+        return "redirect:/entries/" + id + (date != null ? "?date=" + date : "");
     }
 
     // Le compte ADMIN est réservé a l'administration du systeme : il ne doit jamais pouvoir apparaitre comme participant d'un evenement.

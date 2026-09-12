@@ -46,11 +46,11 @@
                         <p class="mb-1" th:text="${recurrenceSummary}"></p>
                         <p class="mb-1" th:if="${recurrenceUntil}">Jusqu'au <span th:text="${recurrenceUntil}"></span></p>
                         <div class="mb-0" th:if="${not #lists.isEmpty(recurrenceExDates)}">
-                            <p class="mb-1">Dates exclues :</p>
+                            <p class="mb-1">Occurrences annulées :</p>
                             <ul class="list-unstyled mb-0">
-                                <li th:each="d : ${entry.recurrence.exDates}" class="d-flex align-items-center gap-2 mb-1">
-                                    <a th:href="@{/entries/{id}(id=${entry.id},date=${d})}" th:text="${d}"></a>
-                                    <form th:action="@{/entries/{id}/occurrences/{date}/retrieve(id=${entry.id},date=${d})}" method="post" class="m-0">
+                                <li th:each="ex : ${recurrenceExDates}" class="d-flex align-items-center gap-2 mb-1">
+                                    <a th:href="@{/entries/{id}(id=${entry.id},date=${ex.date})}" th:text="${ex.formatted}"></a>
+                                    <form th:action="@{/entries/{id}/occurrences/{date}/retrieve(id=${entry.id},date=${ex.date})}" method="post" class="m-0">
                                         <button type="submit" class="btn btn-sm btn-outline-success">Rétablir</button>
                                     </form>
                                 </li>
@@ -77,7 +77,7 @@
                         <button type="submit" class="btn btn-sm btn-outline-danger">Annuler cette occurrence</button>
                     </form>
                 </div>
-                <a th:href="@{/entries/{id}(id=${entry.id})}" class="btn btn-sm btn-link">← Voir la série complète</a>
+                <a th:href="@{/entries/{id}(id=${entry.id})}" class="btn btn-sm btn-link">← Voir l'entrée complète</a>
             </div>
         </div>
     </div>
@@ -85,13 +85,31 @@
     <div th:if="${entry.type.name() == 'EVENT'}" class="card shadow-sm mb-3"
          th:with="displayParticipants=${occurrence != null ? occurrence.participants : entry.participants}">
         <div class="card-body">
-            <h2 class="h5">Participants</h2>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h5 mb-0">Participants</h2>
+                <button th:if="${canEdit}" class="btn btn-sm btn-outline-primary" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#addEventParticipant"
+                        aria-expanded="false" aria-controls="addEventParticipant">+</button>
+            </div>
+            <div class="collapse mb-2" id="addEventParticipant" th:if="${canEdit and not #lists.isEmpty(availableParticipants)}">
+                <form th:action="@{/entries/{id}/participants/add(id=${entry.id},date=${occurrenceDate})}" method="post" class="d-flex gap-2">
+                    <select name="targetUserId" class="form-select form-select-sm" required>
+                        <option th:each="p : ${availableParticipants}" th:value="${p.id}" th:text="${p.name}"></option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary text-nowrap">Ajouter</button>
+                </form>
+            </div>
             <ul class="list-group list-group-flush" th:if="${not #lists.isEmpty(displayParticipants)}">
                 <li class="list-group-item d-flex align-items-center gap-2" th:each="u : ${displayParticipants}">
                     <span class="rounded-circle text-bg-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0"
                           style="width:28px;height:28px;font-size:0.75rem;" th:text="${#strings.substring(u.name,0,1)}"></span>
                     <span th:classappend="${u.login == entry.creator.login} ? 'fw-bold text-primary' : ''" th:text="${u.name}"></span>
                     <span class="badge rounded-pill text-bg-primary" th:if="${u.login == entry.creator.login}">Créateur</span>
+                    <form th:if="${canEdit}" th:action="@{/entries/{id}/participants/remove(id=${entry.id},date=${occurrenceDate})}"
+                          method="post" class="m-0 ms-auto">
+                        <input type="hidden" name="targetUserId" th:value="${u.id}"/>
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Retirer">&times;</button>
+                    </form>
                 </li>
             </ul>
             <p class="text-muted mb-0" th:if="${#lists.isEmpty(displayParticipants)}">Aucun participant pour l'instant.</p>
@@ -113,7 +131,20 @@
                         th:text="${trackable.validatedByOther} ? 'Retirer la validation manuelle' : 'Valider manuellement'"></button>
             </form>
 
-            <h2 class="h5">Participants</h2>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h5 mb-0">Participants</h2>
+                <button th:if="${canEdit}" class="btn btn-sm btn-outline-primary" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#addTaskParticipant"
+                        aria-expanded="false" aria-controls="addTaskParticipant">+</button>
+            </div>
+            <div class="collapse mb-2" id="addTaskParticipant" th:if="${canEdit and not #lists.isEmpty(availableParticipants)}">
+                <form th:action="@{/entries/{id}/participants/add(id=${entry.id},date=${occurrenceDate})}" method="post" class="d-flex gap-2">
+                    <select name="targetUserId" class="form-select form-select-sm" required>
+                        <option th:each="p : ${availableParticipants}" th:value="${p.id}" th:text="${p.name}"></option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary text-nowrap">Ajouter</button>
+                </form>
+            </div>
             <ul class="list-group list-group-flush mb-3" th:if="${not #lists.isEmpty(trackable.participants)}">
                 <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2" th:each="u : ${trackable.participants}">
                     <span class="d-flex align-items-center gap-2">
@@ -124,12 +155,19 @@
                         <span class="badge rounded-pill text-bg-primary" th:if="${u.login == entry.creator.login}">Créateur</span>
                         <span class="badge rounded-pill text-bg-success" th:if="${trackable.contributors.contains(u)}">A contribué</span>
                     </span>
-                    <form th:if="${entry.creator.login == #authentication.name or u.login == #authentication.name}"
-                          th:action="@{/entries/{id}/toggle-contrib(id=${entry.id},date=${occurrenceDate})}" method="post" class="m-0">
-                        <input type="hidden" name="targetUserId" th:value="${u.id}"/>
-                        <button type="submit" th:class="${trackable.contributors.contains(u)} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'"
-                                th:text="${trackable.contributors.contains(u)} ? 'Retirer la contribution' : 'Marquer comme contribué'"></button>
-                    </form>
+                    <span class="d-flex align-items-center gap-2">
+                        <form th:if="${entry.creator.login == #authentication.name or u.login == #authentication.name}"
+                              th:action="@{/entries/{id}/toggle-contrib(id=${entry.id},date=${occurrenceDate})}" method="post" class="m-0">
+                            <input type="hidden" name="targetUserId" th:value="${u.id}"/>
+                            <button type="submit" th:class="${trackable.contributors.contains(u)} ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'"
+                                    th:text="${trackable.contributors.contains(u)} ? 'Retirer la contribution' : 'Marquer comme contribué'"></button>
+                        </form>
+                        <form th:if="${canEdit}" th:action="@{/entries/{id}/participants/remove(id=${entry.id},date=${occurrenceDate})}"
+                              method="post" class="m-0">
+                            <input type="hidden" name="targetUserId" th:value="${u.id}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Retirer">&times;</button>
+                        </form>
+                    </span>
                 </li>
             </ul>
             <p class="text-muted mb-3" th:if="${#lists.isEmpty(trackable.participants)}">Aucun participant pour l'instant.</p>
