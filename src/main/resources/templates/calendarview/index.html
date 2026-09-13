@@ -30,6 +30,9 @@
     #calendar {
         height: 100%;
     }
+    .fc-event.calendar-task-done {
+        font-style: italic;
+    }
 </style>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div class="container-fluid calendar-page">
@@ -87,7 +90,8 @@
             allDay: allDay,
             url: '/entries/' + item.entryId + '?date=' + item.occurrenceDate.slice(0, 10),
             backgroundColor: color,
-            borderColor: color
+            borderColor: color,
+            classNames: (item.type === 'TASK' && item.done) ? ['calendar-task-done'] : []
         };
     }
 
@@ -97,6 +101,11 @@
             locale: 'fr',
             firstDay: 1,
             height: 'parent',
+            // Une tache n'a pas de endDate (cf. CalendarItemDTO.fromEntryAtDate) : sans "end" explicite,
+            // FullCalendar lui appliquerait defaultTimedEventDuration (1h par defaut), ce qui peut la
+            // faire deborder sur le jour suivant pour une tache creee tard le soir. On force donc une
+            // duree implicite nulle pour representer un instant ponctuel sans duree.
+            defaultTimedEventDuration: '00:00:00',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',

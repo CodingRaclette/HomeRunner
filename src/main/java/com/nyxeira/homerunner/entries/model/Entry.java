@@ -64,7 +64,11 @@ public abstract class Entry {
     public User getCreator() { return creator; }
     public RecurrenceRule getRecurrence() { return recurrence; }
     public boolean isRecurring() {
-        return recurrence != null;
+        // Hibernate matérialise toujours un RecurrenceRule non-null au chargement (a cause du
+        // @ElementCollection exDates dans l'embeddable), meme quand aucune recurrence n'a ete
+        // definie : recurrence != null ne suffit donc pas. frequency == null fait foi (cf.
+        // EntryDTO.toRecurrenceRule) pour determiner si l'entree est reellement recurrente.
+        return recurrence != null && recurrence.getFrequency() != null;
     }
 
     public Integer getReminderMinutesBefore() { return reminderMinutesBefore; }

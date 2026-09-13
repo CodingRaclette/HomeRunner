@@ -168,10 +168,11 @@ public class EntryController {
                             Model model, Principal principal) {
         Entry entry = entryLifeService.findById(id);
         // date n'a de sens que pour une entrée récurrente : sinon on retombe sur l'affichage de la master.
-        Occurrence occurrence = (date != null && entry.isRecurring()) ? entryLifeService.resolveOccurrence(entry, date) : null;
+        boolean dateApplies = date != null && entry.isRecurring();
+        Occurrence occurrence = dateApplies ? entryLifeService.resolveOccurrence(entry, date) : null;
         model.addAttribute("entry", entry);
         model.addAttribute("occurrence", occurrence);
-        model.addAttribute("occurrenceDate", date);
+        model.addAttribute("occurrenceDate", dateApplies ? date : null);
 
         // Utilise par le bloc TASK de entries/detail.html pour savoir s'il faut proposer
         // "S'assigner" ou "Se désassigner" a l'utilisateur courant.
