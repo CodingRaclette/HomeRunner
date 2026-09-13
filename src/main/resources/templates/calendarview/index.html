@@ -30,8 +30,12 @@
     #calendar {
         height: 100%;
     }
-    .fc-event.calendar-task-done {
+    /* FullCalendar ne colore que le point (dot) des evenements compacts en vue mois avec
+       backgroundColor/borderColor ; le texte reste sinon dans la couleur de lien Bootstrap. */
+    .fc-event.calendar-task-done,
+    .fc-event.calendar-task-done:hover {
         font-style: italic;
+        color: #6c757d;
     }
 </style>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
