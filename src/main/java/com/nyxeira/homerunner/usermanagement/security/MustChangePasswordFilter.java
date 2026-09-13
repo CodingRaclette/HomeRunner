@@ -1,7 +1,5 @@
 package com.nyxeira.homerunner.usermanagement.security;
 
-import com.nyxeira.homerunner.common.web.WebPaths;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,12 +35,12 @@ public class MustChangePasswordFilter extends OncePerRequestFilter {
         if (auth != null
                 && auth.getPrincipal() instanceof UserPrincipal principal
                 && principal.getUser().isMustChangePassword()
-                && !req.getRequestURI().equals(WebPaths.CHANGE_PASSWORD_FULL) // évite la boucle infinie
-                && !req.getRequestURI().equals(WebPaths.LOGOUT) // évite également la boucle infinie
+                && !req.getRequestURI().equals("/account/change-password") // évite la boucle infinie
+                && !req.getRequestURI().equals("/logout") // évite également la boucle infinie
                 && !isExcludedResource(req.getRequestURI()))
         {
             // Si toutes les conditions sont remplies, on redirige l'utilisateur vers le changement de MDP
-            res.sendRedirect(WebPaths.CHANGE_PASSWORD_FULL);
+            res.sendRedirect("/account/change-password");
         } else {
             chain.doFilter(req, res); // Cas normal : rien à faire, on laisse la requête continuer son chemin
         }

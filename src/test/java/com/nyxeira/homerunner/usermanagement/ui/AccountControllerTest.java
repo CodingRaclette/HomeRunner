@@ -1,6 +1,5 @@
 package com.nyxeira.homerunner.usermanagement.ui;
 
-import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.services.exceptions.InvalidCurrentPasswordException;
 import com.nyxeira.homerunner.usermanagement.services.UserManagementService;
@@ -37,6 +36,8 @@ class AccountControllerTest {
 
     private AccountController controller;
 
+    private final String pathChangePassword =  "/account/change-password";
+
     @BeforeEach
     void setUp() {
         controller = new AccountController(userManagementService);
@@ -58,7 +59,7 @@ class AccountControllerTest {
 
         String view = controller.changePassword(form, bindingResult, principal);
 
-        assertThat(view).isEqualTo(WebPaths.CHANGE_PASSWORD_FULL);
+        assertThat(view).isEqualTo(pathChangePassword);
         verifyNoInteractions(userManagementService);
     }
 
@@ -71,7 +72,7 @@ class AccountControllerTest {
         String view = controller.changePassword(form, bindingResult, principal);
 
         assertThat(bindingResult.hasFieldErrors("confirmPassword")).isTrue();
-        assertThat(view).isEqualTo(WebPaths.CHANGE_PASSWORD_FULL);
+        assertThat(view).isEqualTo(pathChangePassword);
         // Le service ne doit JAMAIS être appelé si la confirmation ne correspond pas :
         // sinon le mot de passe serait changé malgré une confirmation invalide.
         verifyNoInteractions(userManagementService);
@@ -104,6 +105,6 @@ class AccountControllerTest {
         String view = controller.changePassword(form, bindingResult, principal);
 
         assertThat(bindingResult.hasFieldErrors("oldPassword")).isTrue();
-        assertThat(view).isEqualTo(WebPaths.CHANGE_PASSWORD_FULL);
+        assertThat(view).isEqualTo(pathChangePassword);
     }
 }

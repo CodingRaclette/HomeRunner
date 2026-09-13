@@ -1,6 +1,5 @@
 package com.nyxeira.homerunner.usermanagement.security;
 
-import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,6 +36,8 @@ class MustChangePasswordFilterTest {
     FilterChain chain;
 
     private final MustChangePasswordFilter filter = new MustChangePasswordFilter();
+    private final String pathChangePassword = "/account/change-password";
+
 
     @AfterEach
     void clearSecurityContext() {
@@ -77,7 +78,7 @@ class MustChangePasswordFilterTest {
 
         filter.doFilterInternal(request, response, chain);
 
-        verify(response).sendRedirect(WebPaths.CHANGE_PASSWORD_FULL);
+        verify(response).sendRedirect(pathChangePassword);
         verify(chain, never()).doFilter(request, response);
     }
 
@@ -86,7 +87,7 @@ class MustChangePasswordFilterTest {
         User user = UserTestBuilder.aUser().withEmail("a@homerunner.local").build();
         user.setMustChangePassword(true);
         authenticateAs(user);
-        when(request.getRequestURI()).thenReturn(WebPaths.CHANGE_PASSWORD_FULL);
+        when(request.getRequestURI()).thenReturn(pathChangePassword);
 
         filter.doFilterInternal(request, response, chain);
 
@@ -99,7 +100,7 @@ class MustChangePasswordFilterTest {
         User user = UserTestBuilder.aUser().withEmail("a@homerunner.local").build();
         user.setMustChangePassword(true);
         authenticateAs(user);
-        when(request.getRequestURI()).thenReturn(WebPaths.LOGOUT);
+        when(request.getRequestURI()).thenReturn("/logout");
 
         filter.doFilterInternal(request, response, chain);
 

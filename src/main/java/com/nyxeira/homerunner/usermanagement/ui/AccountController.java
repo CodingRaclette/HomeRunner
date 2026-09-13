@@ -1,7 +1,6 @@
 package com.nyxeira.homerunner.usermanagement.ui;
 
 
-import com.nyxeira.homerunner.common.web.WebPaths;
 import com.nyxeira.homerunner.usermanagement.model.User;
 import com.nyxeira.homerunner.usermanagement.security.AuthenticationRefresher;
 
@@ -22,33 +21,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.security.Principal;
 
 @Controller
-@RequestMapping(WebPaths.ACCOUNT)
+@RequestMapping("/account")
 public class AccountController {
 
     private final UserManagementService userManagementService;
+    private final String pathChangePassword = "/account/change-password";
 
     public AccountController(UserManagementService userManagementService) {
         this.userManagementService = userManagementService;
     }
 
-    @GetMapping(WebPaths.CHANGE_PASSWORD)
+    @GetMapping("/change-password")
     public String getChangePasswordForm(Model model) {
         model.addAttribute("form", new ChangePasswordForm());
-        model.addAttribute("actionPath", WebPaths.CHANGE_PASSWORD_FULL);
-        return WebPaths.CHANGE_PASSWORD_FULL;
+        model.addAttribute("actionPath", "/account/change-password");
+        return pathChangePassword;
     }
 
-    @PostMapping(WebPaths.CHANGE_PASSWORD)
+    @PostMapping("/change-password")
     public String changePassword(@Valid @ModelAttribute("form") ChangePasswordForm form,
                                  BindingResult bindingResult, Principal principal) {
         // premier cas d'erreur : il y a des erreurs dans le formulaire
         if (bindingResult.hasErrors()) {
-            return WebPaths.CHANGE_PASSWORD_FULL;
+            return pathChangePassword;
         }
         // deuxième cas d'erreur : le nouveau mdp et la confirmation ne sont pas identiques
         if (!form.getNewPassword().equals(form.getConfirmPassword())) {
             bindingResult.rejectValue("confirmPassword", "error.passwords", "Le nouveau mot de passe et sa confirmation ne sont pas identiques.");
-            return WebPaths.CHANGE_PASSWORD_FULL;
+            return pathChangePassword;
         }
 
         // todo : on pourra ici ajouter des contraintes sur la présence de caractères spéciaux et chiffres.
@@ -62,7 +62,7 @@ public class AccountController {
 
         } catch (InvalidCurrentPasswordException e) {
             bindingResult.rejectValue("oldPassword", "invalid", "Le mot de passe actuel n'est pas correct.");
-            return WebPaths.CHANGE_PASSWORD_FULL;
+            return pathChangePassword;
         }
         return "redirect:/";
 

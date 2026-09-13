@@ -12,8 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static com.nyxeira.homerunner.common.web.WebPaths.*;
-
 
 @Configuration
 public class SecurityConfig {
@@ -28,8 +26,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // On laisse d'abord passer les ressources statiques pour tout le monde avant d'interdire le reste aux non-connectés
-                        .requestMatchers(STATIC_CSS, STATIC_JS, WEBJARS, H2_CONSOLE).permitAll()
-                        .requestMatchers(ADMIN+"/**").hasRole("ADMIN")
+                        .requestMatchers("/css/**", "/js/**", "/webjars/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
 
                 // todo : Formulaire de connexion standard de SpringSecurity (/login), à faire évoluer plus tard
@@ -43,7 +41,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 // La console H2 poste ses requêtes sans jeton CSRF (elle ne connaît pas Spring Security) ; sans
                 // l'exception suivante, chaque requête est rejetée 403.
-                .csrf(csrf -> csrf.ignoringRequestMatchers(H2_CONSOLE))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
                 // On insère notre filtre maison juste après celui qui gère l'authentification
                 // par formulaire : ainsi, immédiatement après une connexion réussie, le contexte
                 // de sécurité est déjà peuplé quand notre filtre s'exécute, et la redirection
