@@ -1,5 +1,7 @@
 package com.nyxeira.homerunner.entries.events;
 
+import java.time.LocalDate;
 
-public record ContributionAddedEvent(Long taskId, String targetLogin, String ActorLogin) {
+// date = date de l'occurrence concernée, ou null si l'action porte sur la tâche master.
+public record ContributionAddedEvent(Long taskId, LocalDate date, String targetLogin, String ActorLogin) {
 }

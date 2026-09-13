@@ -73,6 +73,7 @@ class TaskTrackingServiceTest {
         ArgumentCaptor<SelfAssignEvent> captor = ArgumentCaptor.forClass(SelfAssignEvent.class);
         verify(publisher).publishEvent(captor.capture());
         assertThat(captor.getValue().login()).isEqualTo("bob");
+        assertThat(captor.getValue().date()).isNull();
     }
 
     @Test
@@ -90,6 +91,7 @@ class TaskTrackingServiceTest {
         ArgumentCaptor<SelfUnassignEvent> captor = ArgumentCaptor.forClass(SelfUnassignEvent.class);
         verify(publisher).publishEvent(captor.capture());
         assertThat(captor.getValue().login()).isEqualTo("bob");
+        assertThat(captor.getValue().date()).isNull();
     }
 
     @Test
@@ -263,7 +265,9 @@ class TaskTrackingServiceTest {
         verify(taskOccurrenceRepository).save(captor.capture());
         assertThat(captor.getValue().getParticipants()).containsExactly(actor);
         assertThat(master.getParticipants()).isEmpty();
-        verify(publisher).publishEvent(any(SelfAssignEvent.class));
+        ArgumentCaptor<SelfAssignEvent> eventCaptor = ArgumentCaptor.forClass(SelfAssignEvent.class);
+        verify(publisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().date()).isEqualTo(date);
     }
 
     @Test
@@ -300,7 +304,9 @@ class TaskTrackingServiceTest {
         // l'occurrence est desormais surchargee (sans bob) mais la master n'est pas modifiee
         assertThat(existing.getParticipants()).doesNotContain(actor);
         assertThat(master.getParticipants()).containsExactly(actor);
-        verify(publisher).publishEvent(any(SelfUnassignEvent.class));
+        ArgumentCaptor<SelfUnassignEvent> eventCaptor = ArgumentCaptor.forClass(SelfUnassignEvent.class);
+        verify(publisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().date()).isEqualTo(date);
     }
 
     @Test
@@ -320,6 +326,9 @@ class TaskTrackingServiceTest {
 
         assertThat(existing.getContributors()).containsExactly(actor);
         assertThat(master.getContributors()).isEmpty();
+        ArgumentCaptor<ContributionAddedEvent> eventCaptor = ArgumentCaptor.forClass(ContributionAddedEvent.class);
+        verify(publisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().date()).isEqualTo(date);
     }
 
     @Test
@@ -336,6 +345,8 @@ class TaskTrackingServiceTest {
 
         assertThat(existing.isValidatedByOther()).isTrue();
         assertThat(master.isValidatedByOther()).isFalse();
-        verify(publisher).publishEvent(any(TaskValidatedByOtherEvent.class));
+        ArgumentCaptor<TaskValidatedByOtherEvent> eventCaptor = ArgumentCaptor.forClass(TaskValidatedByOtherEvent.class);
+        verify(publisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().date()).isEqualTo(date);
     }
 }

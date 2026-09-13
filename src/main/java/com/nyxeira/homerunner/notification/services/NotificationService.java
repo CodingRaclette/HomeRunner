@@ -2,6 +2,7 @@ package com.nyxeira.homerunner.notification.services;
 
 import com.nyxeira.homerunner.entries.events.*;
 import com.nyxeira.homerunner.entries.model.Entry;
+import com.nyxeira.homerunner.entries.model.EntryType;
 import com.nyxeira.homerunner.entries.model.Event;
 import com.nyxeira.homerunner.entries.model.Task;
 import com.nyxeira.homerunner.entries.model.occurrences.Occurrence;
@@ -21,6 +22,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +49,9 @@ import static org.springframework.transaction.event.TransactionPhase.AFTER_COMMI
  */
 @Service
 public class NotificationService {
+
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm");
 
     private final EntryRepository entryRepository;
     private final EventOccurrenceRepository eventOccurrenceRepository;
@@ -75,7 +80,8 @@ public class NotificationService {
         entryRepository.findById(event.entryId()).ifPresent(entry -> {
             String link = link(entry, null);
             notify(entry.getParticipants(), event.actorLogin(),
-                    entry.getCreator().getName() + " vous a ajouté à \"" + entry.getName() + "\"", link);
+                    entry.getCreator().getName() + " vous a ajouté à " + typeArticleLower(entry)
+                            + " \"" + entry.getName() + "\" " + dateContext(entry), link);
             scheduleReminderIfNeeded(entry);
         });
     }
@@ -92,12 +98,13 @@ public class NotificationService {
             List<Long> removedIds = oldIds.stream().filter(id -> !newIds.contains(id)).toList();
             List<Long> keptIds = newIds.stream().filter(oldIds::contains).toList();
 
+            String context = typeArticleLower(entry) + " \"" + entry.getName() + "\" " + dateContext(entry);
             notify(userRepository.findAllById(addedIds), event.actorLogin(),
-                    "Vous avez été ajouté(e) à \"" + entry.getName() + "\"", link);
+                    "Vous avez été ajouté(e) à " + context, link);
             notify(userRepository.findAllById(removedIds), event.actorLogin(),
-                    "Vous avez été retiré(e) de \"" + entry.getName() + "\"", link);
+                    "Vous avez été retiré(e) de " + context, link);
             notify(userRepository.findAllById(keptIds), event.actorLogin(),
-                    "\"" + entry.getName() + "\" a été modifiée", link);
+                    typeArticleUpper(entry) + " \"" + entry.getName() + "\" " + dateContext(entry) + " a été modifiée", link);
 
             // La date ou la règle de récurrence a pu changer : les rappels déjà programmés ne sont
             // plus forcément valides. Un rappel unique (entrée non récurrente) est recalculé tout
@@ -127,7 +134,8 @@ public class NotificationService {
     public void onOccurrenceCancelled(OccurrenceCancelledEvent event) {
         entryRepository.findById(event.entryId()).ifPresent(entry -> {
             notify(entry.getParticipants(), event.login(),
-                    "L'occurrence du " + event.date() + " de \"" + entry.getName() + "\" a été annulée",
+                    "L'occurrence du " + DATE_FMT.format(event.date()) + " de " + typeArticleLower(entry)
+                            + " \"" + entry.getName() + "\" a été annulée",
                     link(entry, null));
             scheduledReminderRepository.deleteByEntryAndOccurrenceDate(entry, event.date());
         });
@@ -139,7 +147,8 @@ public class NotificationService {
         entryRepository.findById(event.eventId()).ifPresent(entry -> {
             LocalDate date = event.date();
             notify(resolveOccurrenceParticipants(entry, date), event.login(),
-                    "L'occurrence du " + date + " de \"" + entry.getName() + "\" a été modifiée",
+                    "L'occurrence du " + DATE_FMT.format(date) + " de " + typeArticleLower(entry)
+                            + " \"" + entry.getName() + "\" a été modifiée",
                     link(entry, date));
 
             // Une occurrence matérialisée porte son propre rappel, créé ici la première fois :
@@ -159,8 +168,9 @@ public class NotificationService {
         entryRepository.findById(event.taskId()).ifPresent(entry ->
                 userRepository.findByLogin(event.login()).ifPresent(actor ->
                         notify(List.of(entry.getCreator()), event.login(),
-                                actor.getName() + " s'est assigné(e) à \"" + entry.getName() + "\"",
-                                link(entry, null))));
+                                actor.getName() + " s'est assigné(e) à la tâche \"" + entry.getName() + "\" "
+                                        + dateContext(entry, event.date()),
+                                link(entry, event.date()))));
     }
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
@@ -169,8 +179,9 @@ public class NotificationService {
         entryRepository.findById(event.taskId()).ifPresent(entry ->
                 userRepository.findByLogin(event.login()).ifPresent(actor ->
                         notify(List.of(entry.getCreator()), event.login(),
-                                actor.getName() + " s'est désassigné(e) de \"" + entry.getName() + "\"",
-                                link(entry, null))));
+                                actor.getName() + " s'est désassigné(e) de la tâche \"" + entry.getName() + "\" "
+                                        + dateContext(entry, event.date()),
+                                link(entry, event.date()))));
     }
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
@@ -179,8 +190,9 @@ public class NotificationService {
         entryRepository.findById(event.taskId()).ifPresent(entry ->
                 userRepository.findByLogin(event.targetLogin()).ifPresent(target ->
                         notify(List.of(target), event.ActorLogin(),
-                                "Vous avez été marqué(e) comme ayant contribué à \"" + entry.getName() + "\"",
-                                link(entry, null))));
+                                "Vous avez été marqué(e) comme ayant contribué à la tâche \"" + entry.getName()
+                                        + "\" " + dateContext(entry, event.date()),
+                                link(entry, event.date()))));
     }
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
@@ -189,8 +201,9 @@ public class NotificationService {
         entryRepository.findById(event.taskId()).ifPresent(entry ->
                 userRepository.findByLogin(event.targetLogin()).ifPresent(target ->
                         notify(List.of(target), event.ActorLogin(),
-                                "Vous avez été retiré(e) des contributeurs de \"" + entry.getName() + "\"",
-                                link(entry, null))));
+                                "Vous avez été retiré(e) des contributeurs de la tâche \"" + entry.getName()
+                                        + "\" " + dateContext(entry, event.date()),
+                                link(entry, event.date()))));
     }
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
@@ -200,7 +213,8 @@ public class NotificationService {
         if (!(entry instanceof Task task)) return;
         String verb = event.state() ? "validée manuellement" : "retirée de la validation manuelle";
         notify(task.getParticipants(), event.actorLogin(),
-                "\"" + task.getName() + "\" a été " + verb, link(task, null));
+                "La tâche \"" + task.getName() + "\" " + dateContext(task, event.date()) + " a été " + verb,
+                link(task, event.date()));
     }
 
     private void scheduleReminderIfNeeded(Entry entry) {
@@ -224,6 +238,37 @@ public class NotificationService {
                     .orElseGet(entry::getParticipants);
         }
         return entry.getParticipants();
+    }
+
+    private String typeArticleLower(Entry entry) {
+        return entry.getType() == EntryType.EVENT ? "l'évènement" : "la tâche";
+    }
+
+    private String typeArticleUpper(Entry entry) {
+        return entry.getType() == EntryType.EVENT ? "L'évènement" : "La tâche";
+    }
+
+    // Précise la période (évènement) ou l'échéance (tâche) concernée, pour que la notification
+    // reste compréhensible même si le destinataire consulte plusieurs entrées du même nom.
+    private String dateContext(Entry entry) {
+        return dateContext(entry, null);
+    }
+
+    // Variante utilisée quand l'action porte sur une occurrence précise (ex : (dé)assignation sur
+    // une occurrence) plutôt que sur l'entrée master : la date de l'occurrence prime alors sur
+    // celle de l'entrée, sans quoi la notification afficherait la mauvaise échéance.
+    private String dateContext(Entry entry, LocalDate occurrenceDate) {
+        if (occurrenceDate != null) {
+            return "(occurrence du " + DATE_FMT.format(occurrenceDate) + ")";
+        }
+        if (entry instanceof Event event) {
+            // endDate est facultative (cf. EntryFormDTO.isEndDateValid) : un évènement peut n'avoir
+            // qu'une heure de début.
+            return event.getEndDate() != null
+                    ? "du " + DATETIME_FMT.format(event.getDate()) + " au " + DATETIME_FMT.format(event.getEndDate())
+                    : "le " + DATETIME_FMT.format(event.getDate());
+        }
+        return "prévue le " + DATETIME_FMT.format(entry.getDate());
     }
 
     private String link(Entry entry, LocalDate occurrenceDate) {

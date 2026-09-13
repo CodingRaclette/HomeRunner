@@ -65,7 +65,7 @@ public class TaskTrackingService {
         User user = userRepository.findByLogin(actorLogin).orElseThrow();
         Trackable task = resolveTrackable(taskId, date);
         task.addParticipant(user);
-        publisher.publishEvent(new SelfAssignEvent(taskId, actorLogin));
+        publisher.publishEvent(new SelfAssignEvent(taskId, date, actorLogin));
     }
 
     @Transactional
@@ -79,7 +79,7 @@ public class TaskTrackingService {
         Trackable task = resolveTrackable(taskId, date);
         User user = userRepository.findByLogin(actorLogin).orElseThrow();
         task.removeParticipant(user);
-        publisher.publishEvent(new SelfUnassignEvent(taskId, actorLogin));
+        publisher.publishEvent(new SelfUnassignEvent(taskId, date, actorLogin));
     }
 
     @Transactional
@@ -105,11 +105,11 @@ public class TaskTrackingService {
         if (task.getContributors().contains(targetUser)) {
             // Cas ou l'utilsateur est déjà contributeur, on le retire des contributeur
             task.removeContributor(targetUser);
-            publisher.publishEvent(new ContributionRemovedEvent(taskId, targetUser.getLogin(), actorLogin));
+            publisher.publishEvent(new ContributionRemovedEvent(taskId, date, targetUser.getLogin(), actorLogin));
         } else {
             // Sinon on l'y ajoute
             task.addContributor(targetUser);
-            publisher.publishEvent(new ContributionAddedEvent(taskId, targetUser.getLogin(), actorLogin));
+            publisher.publishEvent(new ContributionAddedEvent(taskId, date, targetUser.getLogin(), actorLogin));
         }
     }
 
@@ -126,7 +126,7 @@ public class TaskTrackingService {
         Task master = getTask(taskId);
         if (master.isEditableBy(user)) {
             task.setValidatedByOther(!task.isValidatedByOther());
-            publisher.publishEvent(new TaskValidatedByOtherEvent(taskId, task.isValidatedByOther(), actorLogin));
+            publisher.publishEvent(new TaskValidatedByOtherEvent(taskId, date, task.isValidatedByOther(), actorLogin));
         } else { throw new AccessDeniedException("User can't set this task done"); }
     }
 

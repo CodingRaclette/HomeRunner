@@ -1,4 +1,7 @@
 package com.nyxeira.homerunner.entries.events;
 
-public record TaskValidatedByOtherEvent(Long taskId, boolean state, String actorLogin) {
+import java.time.LocalDate;
+
+// date = date de l'occurrence concernée, ou null si l'action porte sur la tâche master.
+public record TaskValidatedByOtherEvent(Long taskId, LocalDate date, boolean state, String actorLogin) {
 }

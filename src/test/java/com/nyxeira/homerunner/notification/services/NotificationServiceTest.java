@@ -242,11 +242,13 @@ class NotificationServiceTest {
     void onSelfAssignedNotifieLeCreateurSaufSIlEstLActeur() {
         User creator = UserTestBuilder.aUser().withLogin("alice").build();
         User assignee = UserTestBuilder.aUser().withLogin("bob").withName("Bob").build();
-        Task task = new Task(new TaskDTO(), creator);
+        TaskDTO dto = new TaskDTO();
+        dto.setDate(LocalDateTime.of(2026, 9, 1, 19, 0));
+        Task task = new Task(dto, creator);
         when(entryRepository.findById(5L)).thenReturn(Optional.of(task));
         when(userRepository.findByLogin("bob")).thenReturn(Optional.of(assignee));
 
-        service().onSelfAssigned(new SelfAssignEvent(5L, "bob"));
+        service().onSelfAssigned(new SelfAssignEvent(5L, null, "bob"));
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
         verify(notificationRepository).save(captor.capture());
@@ -257,24 +259,48 @@ class NotificationServiceTest {
     @Test
     void onSelfAssignedNeNotifiePersonneQuandLeCreateurSAssigneLuiMeme() {
         User creator = UserTestBuilder.aUser().withLogin("alice").build();
-        Task task = new Task(new TaskDTO(), creator);
+        TaskDTO dto = new TaskDTO();
+        dto.setDate(LocalDateTime.of(2026, 9, 1, 19, 0));
+        Task task = new Task(dto, creator);
         when(entryRepository.findById(5L)).thenReturn(Optional.of(task));
         when(userRepository.findByLogin("alice")).thenReturn(Optional.of(creator));
 
-        service().onSelfAssigned(new SelfAssignEvent(5L, "alice"));
+        service().onSelfAssigned(new SelfAssignEvent(5L, null, "alice"));
 
         verify(notificationRepository, never()).save(any());
+    }
+
+    @Test
+    void onSelfUnassignedAffichaLaDateDeLOccurrenceEtNonCelleDeLaMasterQuandUneOccurrenceEstConcernee() {
+        User creator = UserTestBuilder.aUser().withLogin("alice").build();
+        User actor = UserTestBuilder.aUser().withLogin("bob").withName("Bob").build();
+        TaskDTO dto = new TaskDTO();
+        dto.setDate(LocalDateTime.of(2026, 9, 1, 19, 0));
+        Task task = new Task(dto, creator);
+        LocalDate occurrenceDate = LocalDate.of(2026, 9, 22);
+        when(entryRepository.findById(5L)).thenReturn(Optional.of(task));
+        when(userRepository.findByLogin("bob")).thenReturn(Optional.of(actor));
+
+        service().onSelfUnassigned(new SelfUnassignEvent(5L, occurrenceDate, "bob"));
+
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        verify(notificationRepository).save(captor.capture());
+        assertThat(captor.getValue().getMessage())
+                .contains("22/09/2026")
+                .doesNotContain("01/09/2026");
     }
 
     @Test
     void onContributionAddedNotifieLaCibleSaufSiElleEstLActeur() {
         User creator = UserTestBuilder.aUser().withLogin("alice").build();
         User target = UserTestBuilder.aUser().withLogin("bob").build();
-        Task task = new Task(new TaskDTO(), creator);
+        TaskDTO dto = new TaskDTO();
+        dto.setDate(LocalDateTime.of(2026, 9, 1, 19, 0));
+        Task task = new Task(dto, creator);
         when(entryRepository.findById(5L)).thenReturn(Optional.of(task));
         when(userRepository.findByLogin("bob")).thenReturn(Optional.of(target));
 
-        service().onContributionAdded(new ContributionAddedEvent(5L, "bob", "alice"));
+        service().onContributionAdded(new ContributionAddedEvent(5L, null, "bob", "alice"));
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
         verify(notificationRepository).save(captor.capture());
@@ -285,11 +311,13 @@ class NotificationServiceTest {
     void onTaskValidatedByOtherNotifieLesParticipantsSaufLActeur() {
         User creator = UserTestBuilder.aUser().withLogin("alice").build();
         User participant = UserTestBuilder.aUser().withLogin("bob").build();
-        Task task = new Task(new TaskDTO(), creator);
+        TaskDTO dto = new TaskDTO();
+        dto.setDate(LocalDateTime.of(2026, 9, 1, 19, 0));
+        Task task = new Task(dto, creator);
         task.setParticipants(new HashSet<>(Set.of(creator, participant)));
         when(entryRepository.findById(5L)).thenReturn(Optional.of(task));
 
-        service().onTaskValidatedByOther(new TaskValidatedByOtherEvent(5L, true, "alice"));
+        service().onTaskValidatedByOther(new TaskValidatedByOtherEvent(5L, null, true, "alice"));
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
         verify(notificationRepository).save(captor.capture());
