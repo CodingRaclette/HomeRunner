@@ -14,6 +14,7 @@ public class CalendarItemDTO {
 
     Long entryId;
     LocalDateTime occurrenceDate;
+    boolean isOccurrence = true;
     String type;
     String title;
     LocalDateTime startDate;
@@ -21,13 +22,14 @@ public class CalendarItemDTO {
     boolean done;
 
 
-    public static CalendarItemDTO fromEntryAtDate(Entry entry, LocalDateTime occurrenceDate) {
+    public static CalendarItemDTO fromEntryAtDate(Entry entry, LocalDateTime occurrenceDate, boolean isOccurrence) {
         CalendarItemDTO dto = new CalendarItemDTO();
         dto.entryId = entry.getId();
         dto.occurrenceDate = occurrenceDate;
         dto.type = entry.getType().name();
         dto.title = entry.getName();
         dto.startDate = occurrenceDate;
+        dto.isOccurrence = isOccurrence; // dépend de l'appel
 
         if (entry instanceof Event event) {
             Duration duration = Duration.between(event.getDate(), event.getEndDate());
@@ -40,12 +42,15 @@ public class CalendarItemDTO {
     }
 
     public static CalendarItemDTO fromOccurrenceAtDate(Occurrence occurrence, LocalDateTime occurrenceDateTime) {
+        // Calcul depuis une occurrence non matérialisée d'une entrée récurrente. Si l'occurrence est
+        // matérialisée (lorsqu'elle a été modifiée) alors elle passe par la méthode fromEntryAtDate()
         CalendarItemDTO dto = new CalendarItemDTO();
         dto.entryId = occurrence.getMaster().getId();
         dto.occurrenceDate = occurrenceDateTime;
         dto.type = occurrence.getMaster().getType().name();
         dto.title = occurrence.getName();
         dto.startDate = occurrenceDateTime;
+        dto.isOccurrence = true; // automatiquement vrai
 
         if (occurrence instanceof TaskOccurrence taskOccurrence) {
             dto.done = taskOccurrence.isDone();

@@ -86,13 +86,17 @@
             ? (item.done ? '#6c757d' : '#0d6efd')
             : '#198754';
         var allDay = isAllDaySpan(item.startDate, item.endDate);
+
+        let base_url = '/entries/' + item.entryId
+        let url = item.isOccurrence ? base_url + '?date=' + item.occurrenceDate.slice(0, 10) : base_url
+
         return {
             id: item.entryId + '-' + item.occurrenceDate,
             title: item.title,
             start: item.startDate,
             end: allDay ? nextDay(item.startDate.slice(0, 10)) : item.endDate,
             allDay: allDay,
-            url: '/entries/' + item.entryId + '?date=' + item.occurrenceDate.slice(0, 10),
+            url: url,
             backgroundColor: color,
             borderColor: color,
             classNames: (item.type === 'TASK' && item.done) ? ['calendar-task-done'] : []

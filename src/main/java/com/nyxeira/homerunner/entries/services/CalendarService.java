@@ -58,11 +58,11 @@ public class CalendarService {
                     Occurrence materializedOccurrence = occurrencesByKey.get(new OccurrenceKey(entry.getId(), occurrenceDate.toLocalDate()));
                     CalendarItemDTO dto = materializedOccurrence != null
                             ? CalendarItemDTO.fromOccurrenceAtDate(materializedOccurrence, occurrenceDate)
-                            : CalendarItemDTO.fromEntryAtDate(entry, occurrenceDate);
+                            : CalendarItemDTO.fromEntryAtDate(entry, occurrenceDate, true);
                     calendarItemDTOList.add(dto);
                 }
             } else {
-                calendarItemDTOList.add(CalendarItemDTO.fromEntryAtDate(entry, entry.getDate()));
+                calendarItemDTOList.add(CalendarItemDTO.fromEntryAtDate(entry, entry.getDate(), false));
             }
         }
 

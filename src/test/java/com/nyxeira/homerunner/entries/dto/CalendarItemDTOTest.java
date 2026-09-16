@@ -28,7 +28,7 @@ class CalendarItemDTOTest {
         Event event = new Event(dto, UserTestBuilder.aUser().build());
         LocalDateTime occurrenceDate = LocalDateTime.of(2026, 9, 8, 10, 0);
 
-        CalendarItemDTO item = CalendarItemDTO.fromEntryAtDate(event, occurrenceDate);
+        CalendarItemDTO item = CalendarItemDTO.fromEntryAtDate(event, occurrenceDate, true);
 
         assertThat(item.getTitle()).isEqualTo("Reunion");
         assertThat(item.getStartDate()).isEqualTo(occurrenceDate);
@@ -41,7 +41,7 @@ class CalendarItemDTOTest {
         task.setValidatedByOther(true);
         LocalDateTime occurrenceDate = LocalDateTime.of(2026, 9, 8, 8, 0);
 
-        CalendarItemDTO item = CalendarItemDTO.fromEntryAtDate(task, occurrenceDate);
+        CalendarItemDTO item = CalendarItemDTO.fromEntryAtDate(task, occurrenceDate, false);
 
         assertThat(item.isDone()).isTrue();
         assertThat(item.getEndDate()).isNull();
