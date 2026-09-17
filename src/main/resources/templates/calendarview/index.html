@@ -88,7 +88,7 @@
         var allDay = isAllDaySpan(item.startDate, item.endDate);
 
         let base_url = '/entries/' + item.entryId
-        let url = item.isOccurrence ? base_url + '?date=' + item.occurrenceDate.slice(0, 10) : base_url
+        let url = item.occurrence ? base_url + '?date=' + item.occurrenceDate.slice(0, 10) : base_url
 
         return {
             id: item.entryId + '-' + item.occurrenceDate,

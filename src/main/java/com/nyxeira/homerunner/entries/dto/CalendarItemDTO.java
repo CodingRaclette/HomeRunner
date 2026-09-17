@@ -14,7 +14,7 @@ public class CalendarItemDTO {
 
     Long entryId;
     LocalDateTime occurrenceDate;
-    boolean isOccurrence = true;
+    boolean occurrence = true;
     String type;
     String title;
     LocalDateTime startDate;
@@ -29,7 +29,7 @@ public class CalendarItemDTO {
         dto.type = entry.getType().name();
         dto.title = entry.getName();
         dto.startDate = occurrenceDate;
-        dto.isOccurrence = isOccurrence; // dépend de l'appel
+        dto.occurrence = isOccurrence; // dépend de l'appel
 
         if (entry instanceof Event event) {
             Duration duration = Duration.between(event.getDate(), event.getEndDate());
@@ -50,7 +50,7 @@ public class CalendarItemDTO {
         dto.type = occurrence.getMaster().getType().name();
         dto.title = occurrence.getName();
         dto.startDate = occurrenceDateTime;
-        dto.isOccurrence = true; // automatiquement vrai
+        dto.occurrence = true; // automatiquement vrai
 
         if (occurrence instanceof TaskOccurrence taskOccurrence) {
             dto.done = taskOccurrence.isDone();
@@ -86,6 +86,10 @@ public class CalendarItemDTO {
     public void setOccurrenceDate(LocalDateTime occurrenceDate) {
         this.occurrenceDate = occurrenceDate;
     }
+
+    public boolean isOccurrence() { return occurrence; }
+
+    public void setOccurrence(boolean occurrence) { this.occurrence = occurrence; }
 
     public String getType() {
         return type;
